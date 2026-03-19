@@ -2,19 +2,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
+
+
 public class ElementList : MonoBehaviour
 {
     public SpellCaster spellCaster;
-    public enum Element { Fire }
+    public enum Element { Fire, Water }
 
     public List<Element> elements = new List<Element>();
     public UnityEvent onListChanged;
 
+    // Dictionary to map keys to elements for easy removal and addition
+    public Dictionary<KeyCode, Element> elementKeys = new Dictionary<KeyCode, Element>
+    {
+        {KeyCode.Q, Element.Fire},
+        {KeyCode.W, Element.Water}
+        // Follow format to add more elements
+    };
+
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Q))
+        foreach (var pair in elementKeys)
         {
-            if (spellCaster.isCasting)
+            if (Input.GetKeyDown(pair.Key))
+            {
+                if (spellCaster.isCasting)
             {
                 Debug.Log("Can't add elements while casting!");
                 return;
@@ -26,9 +38,11 @@ public class ElementList : MonoBehaviour
                 return;
             }
 
-            elements.Add(Element.Fire);
+            elements.Add(pair.Value);
+            Debug.Log($"Added {pair.Value}. Total elements: {elements.Count}");
             onListChanged.Invoke();
-            Debug.Log($"Added Fire. Total elements: {elements.Count}");
+            return;
+            }
         }
     }
 
@@ -37,12 +51,17 @@ public class ElementList : MonoBehaviour
         elements.Clear();
         onListChanged.Invoke();
     }
-
+    // This Count is used to check the total number of elements in the list, used to check if the list is full or empty
     public int CountOf(Element e)
     {
         int count = 0;
-        foreach (var el in elements)
-            if (el == e) count++;
+        foreach (var pair in elements)
+        {
+            if (pair == e)
+            {
+                count++;
+            }
+        }
         return count;
     }
 }

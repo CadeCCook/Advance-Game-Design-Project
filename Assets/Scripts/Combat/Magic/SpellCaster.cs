@@ -6,12 +6,19 @@ public class SpellCaster : MonoBehaviour
     [Header("References")]
     public ElementList elementList;
     public GameObject fireConePrefab;
+    public GameObject waterCirclePrefab;
     public Transform spellOrigin;
+    public bool isCasting = false;
 
     [Header("Fire Cone Scaling")]
     public float baseDuration = 2f;
     public float durationPerElement = 1f;
-    public bool isCasting = false;
+
+
+    [Header("Water Circle Scaling")]
+    public float baseWaterScale = 1f;
+    public float scalePerElement = 0.5f;
+    
 
     private Camera mainCam;
 
@@ -24,15 +31,26 @@ public class SpellCaster : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(1))
         {
+            int elementCount = elementList.elements.Count;
             int fireCount = elementList.CountOf(ElementList.Element.Fire);
+            int waterCount = elementList.CountOf(ElementList.Element.Water);
 
-            if (fireCount == 0)
+
+            if (elementCount == 0)
             {
                 Debug.Log("No elements in list — nothing to cast.");
                 return;
             }
-
-            CastFireCone(fireCount);
+            if (fireCount > 0)
+            {
+                CastFireCone(fireCount);
+                elementList.ClearList();
+            }
+            if (waterCount > 0) 
+            {
+                CastWaterCircle(waterCount);
+                elementList.ClearList();
+            }
             elementList.ClearList();
         }
     }
@@ -69,6 +87,30 @@ public class SpellCaster : MonoBehaviour
         StartCoroutine(TrackCursor(cone, duration));
 
         Destroy(cone, duration + 1f);
+        isCasting = false;
+    }
+    void CastWaterCircle(int waterCount)
+    {
+        isCasting = true;
+
+        Ray ray = mainCam.ScreenPointToRay(Input.mousePosition);
+        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+
+        if (!groundPlane.Raycast(ray, out float enter)) return;
+
+        Vector3 mouseWorldPos = ray.GetPoint(enter);
+
+        // Spawn at mouse position (circle AoE instead of cone)
+        GameObject water = Instantiate(waterCirclePrefab, mouseWorldPos, Quaternion.identity);
+
+        // Scale instead of duration
+        float scale = baseWaterScale + (waterCount - 1) * scalePerElement;
+        water.transform.localScale = new Vector3(scale, scale, scale);
+
+        // Destroy after short time
+        Destroy(water, 2f);
+
+        isCasting = false;
     }
 
     private IEnumerator TrackCursor(GameObject cone, float duration)

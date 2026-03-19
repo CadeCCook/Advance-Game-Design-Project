@@ -14,7 +14,8 @@ public class ElementHUD : MonoBehaviour
 
     private Dictionary<ElementList.Element, Color> elementColors = new()
     {
-        { ElementList.Element.Fire, new Color(1f, 0.35f, 0f) }
+        { ElementList.Element.Fire, new Color(1f, 0.35f, 0f) },
+        { ElementList.Element.Water, new Color(0f, 0.5f, 1f) }
     };
 
     private List<Image> circles = new List<Image>();

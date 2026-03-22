@@ -74,6 +74,8 @@ public class SpellCaster : MonoBehaviour
 
         float duration = baseDuration + (fireCount - 1) * durationPerElement;
 
+        StartCoroutine(DamageOverTime(duration, direction));    // Start the function to damage enemies
+
         ParticleSystem ps = cone.GetComponent<ParticleSystem>();
         if (ps != null)
         {
@@ -147,5 +149,37 @@ public class SpellCaster : MonoBehaviour
         }
 
         isCasting = false;
+    }
+
+    IEnumerator DamageOverTime(float duration, Vector3 direction) // Damage enemies in cone of fire
+    { 
+        float timer = 0f; 
+        while (timer < duration) 
+        { 
+            DealConeDamage(spellOrigin.position, direction, 5f, 60f); 
+            timer += 0.1f; 
+            yield return new WaitForSeconds(0.1f); 
+        } 
+    }
+    void DealConeDamage(Vector3 origin, Vector3 forward, float range, float angle)
+    {
+        Collider[] hits = Physics.OverlapSphere(origin, range);
+
+        foreach (Collider hit in hits)
+        {
+            if (!hit.CompareTag("Enemy")) continue;
+
+            Vector3 dirToTarget = (hit.transform.position - origin).normalized;
+
+            float dot = Vector3.Dot(forward, dirToTarget);
+            float currentAngle = Mathf.Acos(dot) * Mathf.Rad2Deg;
+
+            if (currentAngle <= angle * 0.5f)
+            {
+                Debug.Log("Hit enemy: " + hit.name + " at angle " + currentAngle);
+
+                hit.GetComponent<EnemyHealth>()?.TakeDamage(10*.1f);
+            }
+        }
     }
 }

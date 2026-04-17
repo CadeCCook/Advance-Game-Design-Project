@@ -30,10 +30,7 @@ public class EnemyHealth : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!isDead)
-        {
 
-        }
     }
 
     public void TakeDamage(float amount)
@@ -60,7 +57,10 @@ public class EnemyHealth : MonoBehaviour
 
     void Die()
     {
+        isDead = true;
+
         anim.SetTrigger("Die");
+
 
         GetComponent<Collider>().enabled = false;
 
@@ -71,5 +71,10 @@ public class EnemyHealth : MonoBehaviour
     {
         yield return new WaitForSeconds(5); // match your animation length
         Destroy(gameObject);
+    }
+
+    public Boolean getIsDead()
+    {
+        return isDead;
     }
 }

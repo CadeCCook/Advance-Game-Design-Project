@@ -25,6 +25,8 @@ public class SpellCaster : MonoBehaviour
     void Start()
     {
         mainCam = Camera.main;
+        Debug.Log("waterCirclePrefab assigned: " + (waterCirclePrefab != null));
+    Debug.Log("fireConePrefab assigned: " + (fireConePrefab != null));
     }
 
     void Update()
@@ -41,6 +43,18 @@ public class SpellCaster : MonoBehaviour
                 Debug.Log("No elements in list — nothing to cast.");
                 return;
             }
+            
+            //Check for a combo before individual casts
+            if(elementList.HasCombo(ElementList.Element.Fire, ElementList.Element.Water))
+            {
+                int steamCount = elementList.CountOf(ElementList.Element.Fire) + elementList.CountOf(ElementList.Element.Water);
+                //Uncomment When CastSteam is added
+                //CastSteam(steamCount);
+                Debug.Log("Steam Casted");
+                elementList.ClearList();
+                return;
+            }
+            //Individual Element Cast
             if (fireCount > 0)
             {
                 CastFireCone(fireCount);

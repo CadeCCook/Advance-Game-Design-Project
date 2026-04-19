@@ -1,2 +1,15 @@
 fileFormatVersion: 2
 guid: b3edc363a5a6b2d4d986f70e04a8caa2
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - elementList: {instanceID: 0}
+  - fireConePrefab: {instanceID: 0}
+  - waterCirclePrefab: {fileID: 1804937658000324031, guid: 0b0d1dbf1aebff247939ca40bca73e83, type: 3}
+  - spellOrigin: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

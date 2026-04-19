@@ -7,7 +7,7 @@ using UnityEngine.Events;
 public class ElementList : MonoBehaviour
 {
     public SpellCaster spellCaster;
-    public enum Element { Fire, Water }
+    public enum Element { Fire, Water, Steam }
 
     public List<Element> elements = new List<Element>();
     public UnityEvent onListChanged;
@@ -19,6 +19,10 @@ public class ElementList : MonoBehaviour
         {KeyCode.W, Element.Water}
         // Follow format to add more elements
     };
+    public bool HasCombo(Element a, Element b)
+    {
+        return elements.Contains(a) && elements.Contains(b);
+    }
 
     void Update()
     {

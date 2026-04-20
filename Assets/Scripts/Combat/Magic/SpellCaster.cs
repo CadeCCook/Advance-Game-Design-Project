@@ -33,38 +33,30 @@ public class SpellCaster : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(1))
         {
-            int elementCount = elementList.elements.Count;
-            int fireCount = elementList.CountOf(ElementList.Element.Fire);
-            int waterCount = elementList.CountOf(ElementList.Element.Water);
-
-
-            if (elementCount == 0)
+            if (elementList.elements.Count == 0)
             {
                 Debug.Log("No elements in list — nothing to cast.");
                 return;
             }
+
+            int fire = elementList.CountOf(ElementList.Element.Fire);
+            int water = elementList.CountOf(ElementList.Element.Water);
+            int earth = elementList.CountOf(ElementList.Element.Earth);
+            int elec = elementList.CountOf(ElementList.Element.Electric);
+            int steam = elementList.CountOf(ElementList.Element.Steam);
+            int lava = elementList.CountOf(ElementList.Element.lava);
+            int ice = elementList.CountOf(ElementList.Element.ice);
+            int plasma = elementList.CountOf(ElementList.Element.plasma);
+
+            if (fire > 0) CastFireCone(fire);
+            if (water > 0) CastWaterCircle(water);
+            if (earth > 0) CastEarthShockwave(earth);
+            if (elec > 0) CastElectricBlast(elec);
+            if (steam > 0) CastSteamBlast(steam);
+            if (lava > 0) CastLava(lava);
+            if (ice > 0) CastIce(ice);
+            if (plasma > 0) CastPlasma(plasma);
             
-            //Check for a combo before individual casts
-            if(elementList.HasCombo(ElementList.Element.Fire, ElementList.Element.Water))
-            {
-                int steamCount = elementList.CountOf(ElementList.Element.Fire) + elementList.CountOf(ElementList.Element.Water);
-                //Uncomment When CastSteam is added
-                //CastSteam(steamCount);
-                Debug.Log("Steam Casted");
-                elementList.ClearList();
-                return;
-            }
-            //Individual Element Cast
-            if (fireCount > 0)
-            {
-                CastFireCone(fireCount);
-                elementList.ClearList();
-            }
-            if (waterCount > 0) 
-            {
-                CastWaterCircle(waterCount);
-                elementList.ClearList();
-            }
             elementList.ClearList();
         }
     }
@@ -128,6 +120,25 @@ public class SpellCaster : MonoBehaviour
 
         isCasting = false;
     }
+
+    void CastElectricBlast(int count)
+    {
+        Debug.Log($"Casting Electric Blast with power: {count}");
+    }
+
+    void CastEarthShockwave(int count) 
+    {
+        Debug.Log($"Casting Earth Shockwave with power: {count}");
+    }
+
+    void CastSteamBlast(int count) 
+    {
+    Debug.Log($"Casting Steam Blast with power: {count}");
+    }
+
+    void CastLava(int count) { /* Logic */ }
+    void CastIce(int count) { /* Logic */ }
+    void CastPlasma(int count) { /* Logic */ }
 
     private IEnumerator TrackCursor(GameObject cone, float duration)
     {

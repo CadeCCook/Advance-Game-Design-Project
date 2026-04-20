@@ -46,7 +46,7 @@ public class ElementList : MonoBehaviour
     {
         bool combined = false;
 
-        for (int i = 0; i < elements.Count; i++)
+        for (int i = elements.Count - 1; i > 0; i--)
         {
             Element existing = elements[i];
             

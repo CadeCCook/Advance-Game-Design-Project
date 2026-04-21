@@ -213,6 +213,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 717893527}
   - {fileID: 273834985}
   - {fileID: 2104834255}
   m_Father: {fileID: 0}
@@ -1059,6 +1060,58 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 5, z: 0}
   m_TimeToStationary: 0.5
+--- !u!1 &717893526
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 717893527}
+  - component: {fileID: 717893528}
+  m_Layer: 5
+  m_Name: HUD
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &717893527
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717893526}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 121729582}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 50, y: 50}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &717893528
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717893526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72f3d6133c50f4a44aab2493daf079bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ElementHUD
+  elementList: {fileID: 1728911538}
+  circleSize: 20
+  padding: 10
+  bottomMargin: 20
 --- !u!1 &793509594 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1232766363669618, guid: 2b519101e10d4a74580d4c86ac9e03e6, type: 3}
@@ -1963,6 +2016,10 @@ PrefabInstance:
       value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
+      propertyPath: steamConePrefab
+      value: 
+      objectReference: {fileID: 2220800205303344428, guid: c8b55f8f2ee4a1b469c0e646af8450fa, type: 3}
+    - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
       propertyPath: waterCirclePrefab
       value: 
       objectReference: {fileID: 1722726733478836, guid: b5f6eea1001170149a676bc2477c1649, type: 3}
@@ -2385,6 +2442,17 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &1728911538 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9113200083848031182, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
+  m_PrefabInstance: {fileID: 1408926351}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 130980138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 985dac3eb9dda3c49a0428ab15639d5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ElementList
 --- !u!1 &1754214993
 GameObject:
   m_ObjectHideFlags: 0

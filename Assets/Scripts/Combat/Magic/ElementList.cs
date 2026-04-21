@@ -7,22 +7,29 @@ using UnityEngine.Events;
 public class ElementList : MonoBehaviour
 {
     public SpellCaster spellCaster;
-    public enum Element { Fire, Water, Steam }
+    public enum Element { Fire, Water, Earth, Electric, Frost, Steam, Poison, Ice, Magnet, Plasma }
 
     public List<Element> elements = new List<Element>();
     public UnityEvent onListChanged;
 
-    // Dictionary to map keys to elements for easy removal and addition
     public Dictionary<KeyCode, Element> elementKeys = new Dictionary<KeyCode, Element>
     {
         {KeyCode.Q, Element.Fire},
-        {KeyCode.W, Element.Water}
+        {KeyCode.W, Element.Water},
+        {KeyCode.E, Element.Earth},
+        {KeyCode.R, Element.Electric},
+        {KeyCode.Space, Element.Frost}
         // Follow format to add more elements
     };
-    public bool HasCombo(Element a, Element b)
+
+    private Dictionary<(Element, Element), Element> recipes = new()
     {
-        return elements.Contains(a) && elements.Contains(b);
-    }
+        { (Element.Fire, Element.Water), Element.Steam },
+        { (Element.Water, Element.Earth), Element.Poison },
+        { (Element.Water, Element.Frost), Element.Ice },
+        { (Element.Earth, Element.Electric), Element.Magnet },
+        { (Element.Electric, Element.Fire), Element.Plasma }
+    };
 
     void Update()
     {
@@ -30,25 +37,39 @@ public class ElementList : MonoBehaviour
         {
             if (Input.GetKeyDown(pair.Key))
             {
-                if (spellCaster.isCasting)
-            {
-                Debug.Log("Can't add elements while casting!");
-                return;
-            }
+                if (spellCaster.isCasting) return;
 
-            if (elements.Count >= 6)
-            {
-                Debug.Log("Element list is full! (max 6)");
-                return;
-            }
-
-            elements.Add(pair.Value);
-            Debug.Log($"Added {pair.Value}. Total elements: {elements.Count}");
-            onListChanged.Invoke();
-            return;
+                ProcessElementAddition(pair.Value);
             }
         }
     }
+
+    void ProcessElementAddition(Element newElement)
+    {
+        bool combined = false;
+
+        for (int i = elements.Count - 1; i >= 0; i--)
+        {
+            Element existing = elements[i];
+            
+            if (recipes.TryGetValue((existing, newElement), out Element result) ||
+                recipes.TryGetValue((newElement, existing), out result))
+            {
+                elements.RemoveAt(i);
+                elements.Add(result);
+                combined = true;
+                break; 
+            }
+        }
+
+        if (!combined && elements.Count < 6)
+        {
+            elements.Add(newElement);
+        }
+
+        onListChanged.Invoke();
+    }
+
 
     public void ClearList()
     {

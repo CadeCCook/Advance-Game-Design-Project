@@ -8,6 +8,7 @@ public class SpellCaster : MonoBehaviour
     public GameObject fireConePrefab;
     public GameObject waterCirclePrefab;
     public GameObject steamConePrefab;
+    public GameObject shockwavePrefab;
     public Transform spellOrigin;
     public bool isCasting = false;
 
@@ -55,7 +56,7 @@ public class SpellCaster : MonoBehaviour
     {
         mainCam = Camera.main;
         Debug.Log("waterCirclePrefab assigned: " + (waterCirclePrefab != null));
-    Debug.Log("fireConePrefab assigned: " + (fireConePrefab != null));
+        Debug.Log("fireConePrefab assigned: " + (fireConePrefab != null));
     }
 
     void Update()
@@ -153,7 +154,18 @@ public class SpellCaster : MonoBehaviour
 
     void CastEarthShockwave(int count) 
     {
+        isCasting = true;
+        Vector3 mouseWorldPos = GetMouseWorldPos();
+        Vector3 direction = (mouseWorldPos - spellOrigin.position);
+        direction.y = 0;
+        direction.Normalize();
+
+        GameObject shockwave = Instantiate(shockwavePrefab, spellOrigin.position, Quaternion.LookRotation(direction));
+        
+        Destroy(shockwave, 3.5f);
         Debug.Log($"Casting Earth Shockwave with power: {count}");
+
+        isCasting = false;
     }
 
     void CastElectricBlast(int count)

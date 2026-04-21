@@ -10,6 +10,34 @@ public class SpellCaster : MonoBehaviour
     public Transform spellOrigin;
     public bool isCasting = false;
 
+    [Header("Base Damage")]
+    public float baseDamage = 10f;
+
+    [Header("Damage Multipliers")]
+    [Range(0f, 2f)] public float fireDamageMultiplier = 1f;
+    [Range(0f, 2f)] public float waterDamageMultiplier = 1f;
+    [Range(0f, 2f)] public float earthDamageMultiplier = 1f;
+    [Range(0f, 2f)] public float electricDamageMultiplier = 1f;
+    [Range(0f, 2f)] public float frostDamageMultiplier = 1f;
+    [Range(0f, 2f)] public float poisonDamageMultiplier = 1f;
+    [Range(0f, 2f)] public float magnetDamageMultiplier = 1f;
+    [Range(0f, 2f)] public float steamDamageMultiplier = 1f;
+    [Range(0f, 2f)] public float iceDamageMultiplier = 1f;
+    [Range(0f, 2f)] public float plasmaDamageMultiplier = 1f;
+
+    [Header("Spell Effects")]
+    [Range(0f, 5f)]  public float electricStunDuration = 1.5f;
+
+    [Range(0f, 1f)]  public float frostSlowPercent = 0.4f;
+
+    [Range(0f, 50f)] public float steamShoveForce = 15f;
+
+    [Range(0f, 1f)]  public float poisonSlowPercent = 0.2f;
+
+    [Range(0f, 50f)] public float magnetPullForce = 20f;
+
+    [Range(1, 20)]   public int   iceProjectileCount = 5;
+    
     [Header("Fire Cone Scaling")]
     public float baseDuration = 2f;
     public float durationPerElement = 1f;
@@ -43,44 +71,50 @@ public class SpellCaster : MonoBehaviour
             int water = elementList.CountOf(ElementList.Element.Water);
             int earth = elementList.CountOf(ElementList.Element.Earth);
             int elec = elementList.CountOf(ElementList.Element.Electric);
+            int frost = elementList.CountOf(ElementList.Element.Frost);
             int steam = elementList.CountOf(ElementList.Element.Steam);
-            int lava = elementList.CountOf(ElementList.Element.lava);
-            int ice = elementList.CountOf(ElementList.Element.ice);
-            int plasma = elementList.CountOf(ElementList.Element.plasma);
+            int ice = elementList.CountOf(ElementList.Element.Ice);
+            int poison = elementList.CountOf(ElementList.Element.Poison);
+            int magnet = elementList.CountOf(ElementList.Element.Magnet);
+            int plasma = elementList.CountOf(ElementList.Element.Plasma);
 
             if (fire > 0) CastFireCone(fire);
             if (water > 0) CastWaterCircle(water);
             if (earth > 0) CastEarthShockwave(earth);
             if (elec > 0) CastElectricBlast(elec);
+            if (frost > 0) CastFrost(frost);
             if (steam > 0) CastSteamBlast(steam);
-            if (lava > 0) CastLava(lava);
             if (ice > 0) CastIce(ice);
+            if (poison > 0) CastPoison(poison);
+            if (magnet > 0) CastMagnet(magnet);
             if (plasma > 0) CastPlasma(plasma);
             
             elementList.ClearList();
         }
     }
 
+    float GetDamage(float multiplier) => baseDamage * multiplier;
+
+    Vector3 GetMouseWorldPos()
+    {
+        Ray ray = mainCam.ScreenPointToRay(Input.mousePosition);
+        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+        return groundPlane.Raycast(ray, out float enter) ? ray.GetPoint(enter) : Vector3.zero;
+    }
+
     void CastFireCone(int fireCount)
     {
         isCasting = true;
-        Ray ray = mainCam.ScreenPointToRay(Input.mousePosition);
-        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-
-        if (!groundPlane.Raycast(ray, out float enter)) return;
-
-        Vector3 mouseWorldPos = ray.GetPoint(enter);
+        Vector3 mouseWorldPos = GetMouseWorldPos();
         Vector3 direction = (mouseWorldPos - spellOrigin.position);
         direction.y = 0;
         direction.Normalize();
 
         Quaternion rotation = Quaternion.LookRotation(direction, Vector3.up);
-
         GameObject cone = Instantiate(fireConePrefab, spellOrigin.position, rotation);
-
         float duration = baseDuration + (fireCount - 1) * durationPerElement;
 
-        StartCoroutine(DamageOverTime(duration, direction));    // Start the function to damage enemies
+        StartCoroutine(DamageOverTime(duration, direction, GetDamage(fireDamageMultiplier)));
 
         ParticleSystem ps = cone.GetComponent<ParticleSystem>();
         if (ps != null)
@@ -93,37 +127,22 @@ public class SpellCaster : MonoBehaviour
         }
 
         StartCoroutine(TrackCursor(cone, duration));
-
         Destroy(cone, duration + 1f);
         isCasting = false;
     }
     void CastWaterCircle(int waterCount)
     {
         isCasting = true;
+        Vector3 mouseWorldPos = GetMouseWorldPos();
 
-        Ray ray = mainCam.ScreenPointToRay(Input.mousePosition);
-        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-
-        if (!groundPlane.Raycast(ray, out float enter)) return;
-
-        Vector3 mouseWorldPos = ray.GetPoint(enter);
-
-        // Spawn at mouse position (circle AoE instead of cone)
         GameObject water = Instantiate(waterCirclePrefab, mouseWorldPos, Quaternion.identity);
-
-        // Scale instead of duration
         float scale = baseWaterScale + (waterCount - 1) * scalePerElement;
         water.transform.localScale = new Vector3(scale, scale, scale);
 
-        // Destroy after short time
+        // TODO: apply GetDamage(waterDamageMultiplier) to enemies in area
+
         Destroy(water, 2f);
-
         isCasting = false;
-    }
-
-    void CastElectricBlast(int count)
-    {
-        Debug.Log($"Casting Electric Blast with power: {count}");
     }
 
     void CastEarthShockwave(int count) 
@@ -131,14 +150,40 @@ public class SpellCaster : MonoBehaviour
         Debug.Log($"Casting Earth Shockwave with power: {count}");
     }
 
-    void CastSteamBlast(int count) 
+    void CastElectricBlast(int count)
     {
-    Debug.Log($"Casting Steam Blast with power: {count}");
+        Debug.Log($"Casting Electric Blast with power: {count}");
     }
 
-    void CastLava(int count) { /* Logic */ }
-    void CastIce(int count) { /* Logic */ }
-    void CastPlasma(int count) { /* Logic */ }
+    void CastFrost(int count)
+    {
+        Debug.Log($"Casting Frost | Power: {count} | Damage: {GetDamage(frostDamageMultiplier)}");
+    }
+
+    void CastIce(int count)
+    {
+        Debug.Log($"Casting Ice | Power: {count} | Damage: {GetDamage(iceDamageMultiplier)}");
+    }
+
+    void CastPoison(int count)
+    {
+        Debug.Log($"Casting Poison | Power: {count} | Damage: {GetDamage(poisonDamageMultiplier)}");
+    }
+
+    void CastMagnet(int count)
+    {
+        Debug.Log($"Casting Magnet | Power: {count} | Damage: {GetDamage(magnetDamageMultiplier)}");
+    }
+
+    void CastPlasma(int count)
+    {
+        Debug.Log($"Casting Plasma | Power: {count} | Damage: {GetDamage(plasmaDamageMultiplier)}");
+    }
+
+    void CastSteamBlast(int count) 
+    {
+        Debug.Log($"Casting Steam Blast with power: {count}");
+    }
 
     private IEnumerator TrackCursor(GameObject cone, float duration)
     {
@@ -146,20 +191,14 @@ public class SpellCaster : MonoBehaviour
 
         while (elapsed < duration && cone != null)
         {
-            Ray ray = mainCam.ScreenPointToRay(Input.mousePosition);
-            Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+            Vector3 mouseWorldPos = GetMouseWorldPos();
+            Vector3 direction = (mouseWorldPos - spellOrigin.position);
+            direction.y = 0;
 
-            if (groundPlane.Raycast(ray, out float enter))
+            if (direction != Vector3.zero)
             {
-                Vector3 mouseWorldPos = ray.GetPoint(enter);
-                Vector3 direction = (mouseWorldPos - spellOrigin.position);
-                direction.y = 0;
-
-                if (direction != Vector3.zero)
-                {
-                    cone.transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
-                    cone.transform.position = spellOrigin.position;
-                }
+                cone.transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+                cone.transform.position = spellOrigin.position;
             }
 
             elapsed += Time.deltaTime;
@@ -176,17 +215,18 @@ public class SpellCaster : MonoBehaviour
         isCasting = false;
     }
 
-    IEnumerator DamageOverTime(float duration, Vector3 direction) // Damage enemies in cone of fire
-    { 
-        float timer = 0f; 
-        while (timer < duration) 
-        { 
-            DealConeDamage(spellOrigin.position, direction, 5f, 60f); 
-            timer += 0.1f; 
-            yield return new WaitForSeconds(0.1f); 
-        } 
+    IEnumerator DamageOverTime(float duration, Vector3 direction, float damage)
+    {
+        float timer = 0f;
+        while (timer < duration)
+        {
+            DealConeDamage(spellOrigin.position, direction, 5f, 60f, damage);
+            timer += 0.1f;
+            yield return new WaitForSeconds(0.1f);
+        }
     }
-    void DealConeDamage(Vector3 origin, Vector3 forward, float range, float angle)
+
+    void DealConeDamage(Vector3 origin, Vector3 forward, float range, float angle, float damage)
     {
         Collider[] hits = Physics.OverlapSphere(origin, range);
 
@@ -195,15 +235,13 @@ public class SpellCaster : MonoBehaviour
             if (!hit.CompareTag("Enemy")) continue;
 
             Vector3 dirToTarget = (hit.transform.position - origin).normalized;
-
             float dot = Vector3.Dot(forward, dirToTarget);
             float currentAngle = Mathf.Acos(dot) * Mathf.Rad2Deg;
 
             if (currentAngle <= angle * 0.5f)
             {
                 Debug.Log("Hit enemy: " + hit.name + " at angle " + currentAngle);
-
-                hit.GetComponent<EnemyHealth>()?.TakeDamage(10*.1f);
+                hit.GetComponent<EnemyHealth>()?.TakeDamage(damage * 0.1f);
             }
         }
     }

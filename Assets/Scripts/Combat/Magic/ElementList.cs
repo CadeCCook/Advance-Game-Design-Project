@@ -7,7 +7,7 @@ using UnityEngine.Events;
 public class ElementList : MonoBehaviour
 {
     public SpellCaster spellCaster;
-    public enum Element { Fire, Water, Earth, Electric, Steam, lava, ice, plasma }
+    public enum Element { Fire, Water, Earth, Electric, Frost, Steam, Poison, Ice, Magnet, Plasma }
 
     public List<Element> elements = new List<Element>();
     public UnityEvent onListChanged;
@@ -17,16 +17,18 @@ public class ElementList : MonoBehaviour
         {KeyCode.Q, Element.Fire},
         {KeyCode.W, Element.Water},
         {KeyCode.E, Element.Earth},
-        {KeyCode.R, Element.Electric}
+        {KeyCode.R, Element.Electric},
+        {KeyCode.Space, Element.Frost}
         // Follow format to add more elements
     };
 
     private Dictionary<(Element, Element), Element> recipes = new()
     {
         { (Element.Fire, Element.Water), Element.Steam },
-        { (Element.Fire, Element.Earth), Element.lava },
-        { (Element.Water, Element.Earth), Element.ice },
-        { (Element.Electric, Element.Fire), Element.plasma }
+        { (Element.Water, Element.Earth), Element.Poison },
+        { (Element.Water, Element.Frost), Element.Ice },
+        { (Element.Earth, Element.Electric), Element.Magnet },
+        { (Element.Electric, Element.Fire), Element.Plasma }
     };
 
     void Update()
@@ -46,7 +48,7 @@ public class ElementList : MonoBehaviour
     {
         bool combined = false;
 
-        for (int i = elements.Count - 1; i > 0; i--)
+        for (int i = elements.Count - 1; i >= 0; i--)
         {
             Element existing = elements[i];
             

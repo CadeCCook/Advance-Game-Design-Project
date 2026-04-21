@@ -2016,6 +2016,10 @@ PrefabInstance:
       value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
+      propertyPath: steamConePrefab
+      value: 
+      objectReference: {fileID: 2220800205303344428, guid: c8b55f8f2ee4a1b469c0e646af8450fa, type: 3}
+    - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
       propertyPath: waterCirclePrefab
       value: 
       objectReference: {fileID: 1722726733478836, guid: b5f6eea1001170149a676bc2477c1649, type: 3}

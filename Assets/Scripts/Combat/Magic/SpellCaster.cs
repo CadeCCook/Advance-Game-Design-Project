@@ -7,6 +7,7 @@ public class SpellCaster : MonoBehaviour
     public ElementList elementList;
     public GameObject fireConePrefab;
     public GameObject waterCirclePrefab;
+    public GameObject steamConePrefab;
     public Transform spellOrigin;
     public bool isCasting = false;
 
@@ -30,7 +31,7 @@ public class SpellCaster : MonoBehaviour
 
     [Range(0f, 1f)]  public float frostSlowPercent = 0.4f;
 
-    [Range(0f, 50f)] public float steamShoveForce = 15f;
+    [Range(0f, 50f)] public float steamShoveForce = 10f;
 
     [Range(0f, 1f)]  public float poisonSlowPercent = 0.2f;
 
@@ -83,7 +84,7 @@ public class SpellCaster : MonoBehaviour
             if (earth > 0) CastEarthShockwave(earth);
             if (elec > 0) CastElectricBlast(elec);
             if (frost > 0) CastFrost(frost);
-            if (steam > 0) CastSteamBlast(steam);
+            if (steam > 0) CastSteamCone(steam);
             if (ice > 0) CastIce(ice);
             if (poison > 0) CastPoison(poison);
             if (magnet > 0) CastMagnet(magnet);
@@ -128,6 +129,8 @@ public class SpellCaster : MonoBehaviour
 
         StartCoroutine(TrackCursor(cone, duration));
         Destroy(cone, duration + 1f);
+
+        Debug.Log($"Casting Fire Cone with power: {fireCount}");
         isCasting = false;
     }
     void CastWaterCircle(int waterCount)
@@ -142,6 +145,9 @@ public class SpellCaster : MonoBehaviour
         // TODO: apply GetDamage(waterDamageMultiplier) to enemies in area
 
         Destroy(water, 2f);
+
+        Debug.Log($"Casting Water Circle with power: {waterCount}");
+
         isCasting = false;
     }
 
@@ -158,6 +164,35 @@ public class SpellCaster : MonoBehaviour
     void CastFrost(int count)
     {
         Debug.Log($"Casting Frost | Power: {count} | Damage: {GetDamage(frostDamageMultiplier)}");
+    }
+
+    void CastSteamCone(int count) 
+    {
+        isCasting = true;
+        Vector3 mouseWorldPos = GetMouseWorldPos();
+        Vector3 direction = (mouseWorldPos - spellOrigin.position);
+        direction.y = 0;
+        direction.Normalize();
+
+        Quaternion rotation = Quaternion.LookRotation(direction, Vector3.up);
+        GameObject cone = Instantiate(steamConePrefab, spellOrigin.position, rotation);
+        float duration = baseDuration + (count - 1) * durationPerElement;
+
+        StartCoroutine(ShoveOverTime(duration, direction));
+
+        ParticleSystem ps = cone.GetComponent<ParticleSystem>();
+        if (ps != null)
+        {
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = ps.main;
+            main.duration = duration;
+            main.startLifetime = duration * 0.5f;
+            ps.Play();
+        }
+
+        StartCoroutine(TrackCursor(cone, duration));
+        Destroy(cone, duration + 1f);
+        isCasting = false;
     }
 
     void CastIce(int count)
@@ -180,9 +215,39 @@ public class SpellCaster : MonoBehaviour
         Debug.Log($"Casting Plasma | Power: {count} | Damage: {GetDamage(plasmaDamageMultiplier)}");
     }
 
-    void CastSteamBlast(int count) 
+    IEnumerator ShoveOverTime(float duration, Vector3 direction)
     {
-        Debug.Log($"Casting Steam Blast with power: {count}");
+        float timer = 0f;
+        while (timer < duration)
+        {
+            ShoveCone(spellOrigin.position, direction, 5f, 60f);
+            timer += 0.1f;
+            yield return new WaitForSeconds(0.1f);
+        }
+    }
+
+    void ShoveCone(Vector3 origin, Vector3 forward, float range, float angle)
+    {
+        Collider[] hits = Physics.OverlapSphere(origin, range);
+
+        foreach (Collider hit in hits)
+        {
+            if (!hit.CompareTag("Enemy")) continue;
+
+            Vector3 dirToTarget = (hit.transform.position - origin).normalized;
+            float dot          = Vector3.Dot(forward, dirToTarget);
+            float currentAngle = Mathf.Acos(dot) * Mathf.Rad2Deg;
+
+            if (currentAngle <= angle * 0.5f)
+            {
+                GoblinAI ai = hit.GetComponent<GoblinAI>();
+                if (ai != null)
+                    ai.ApplyKnockback(forward * steamShoveForce);
+
+                hit.GetComponent<EnemyHealth>()?.TakeDamage(GetDamage(steamDamageMultiplier) * 0.1f);
+                Debug.Log("Steam shoved enemy: " + hit.name);
+            }
+        }
     }
 
     private IEnumerator TrackCursor(GameObject cone, float duration)

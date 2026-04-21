@@ -11,9 +11,17 @@ public class GoblinAI : MonoBehaviour
     private Animator animator;
     public EnemyHealth health;
 
+    private Vector3 knockbackVelocity = Vector3.zero;
+    public float knockbackDecay = 5f;
+
     void Start()
     {
         animator = GetComponent<Animator>();
+    }
+
+    public void ApplyKnockback(Vector3 force)
+    {
+        knockbackVelocity += force;
     }
 
     void Update()
@@ -23,6 +31,17 @@ public class GoblinAI : MonoBehaviour
 
         float distance = Vector3.Distance(transform.position, player.position);
 
+        if (knockbackVelocity.magnitude > 0.05f)
+        {
+            transform.position += knockbackVelocity * Time.deltaTime;
+            knockbackVelocity = Vector3.Lerp(knockbackVelocity, Vector3.zero, knockbackDecay * Time.deltaTime);
+            return;
+        }
+        else
+        {
+            knockbackVelocity = Vector3.zero;
+        }
+
         if (distance > attackRange)
         {
             MoveTowardPlayer();
@@ -31,6 +50,8 @@ public class GoblinAI : MonoBehaviour
         {
             Attack();
         }
+
+
     }
 
     void MoveTowardPlayer()

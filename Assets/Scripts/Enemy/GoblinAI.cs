@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class GoblinAI : MonoBehaviour
@@ -6,13 +7,17 @@ public class GoblinAI : MonoBehaviour
     public float speed = 3f;
     public float attackRange = 2f;
 
-    public bool Activated = true; // future stealth system hook
+    public bool Activated = true; // future detection system hook
 
     private Animator animator;
     public EnemyHealth health;
 
     private Vector3 knockbackVelocity = Vector3.zero;
     public float knockbackDecay = 5f;
+
+    private float damageAmount = 5;
+
+    private Boolean playerInRange;
 
     void Start()
     {
@@ -44,10 +49,12 @@ public class GoblinAI : MonoBehaviour
 
         if (distance > attackRange)
         {
+            playerInRange = false;
             MoveTowardPlayer();
         }
         else
         {
+            playerInRange = true;
             Attack();
         }
 
@@ -69,5 +76,13 @@ public class GoblinAI : MonoBehaviour
     {
         animator.SetBool("isWalking", false);
         animator.SetBool("isAttacking", true);
+    }
+
+    public void DealDamage()
+    {
+        if (playerInRange)
+        {
+            //player.TakeDamage(damageAmount);
+        }
     }
 }

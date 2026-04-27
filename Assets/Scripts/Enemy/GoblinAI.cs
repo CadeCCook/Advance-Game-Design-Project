@@ -82,7 +82,8 @@ public class GoblinAI : MonoBehaviour
     {
         if (playerInRange)
         {
-            //player.TakeDamage(damageAmount);
+            Debug.Log("Attacking player...");
+            player.GetComponent<PlayerHealth>()?.TakeDamage(damageAmount);
         }
     }
 }

@@ -11,10 +11,11 @@ public class PlayerHealth : MonoBehaviour
 
     Boolean isDead = false;
 
-    //public Image healthFill;
+    private Animator animator;
+
+    public Image healthFill;
     public float maxHealth;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         if (maxHealth == 0) // If health variable is not assigned, defaults to 100
@@ -22,9 +23,9 @@ public class PlayerHealth : MonoBehaviour
 
         health = maxHealth;
 
+        animator = GetComponentInChildren<Animator>();
     }
 
-    // Update is called once per frame
     void Update()
     {
 
@@ -38,13 +39,13 @@ public class PlayerHealth : MonoBehaviour
         health -= amount;
 
         // Update healthbar
-        //Vector2 current = healthFill.rectTransform.sizeDelta;
+        Vector2 current = healthFill.rectTransform.sizeDelta;
 
-        //if (health < 0) health = 0;
+        if (health < 0) health = 0;
 
-        //Vector2 newSize = new Vector2(health, current.y);
+        Vector2 newSize = new Vector2(health*3, current.y);
 
-        //healthFill.rectTransform.sizeDelta = newSize;
+        healthFill.rectTransform.sizeDelta = newSize;
 
         if (health <= 0)
         {
@@ -56,19 +57,19 @@ public class PlayerHealth : MonoBehaviour
     {
         isDead = true;
 
-        //anim.SetTrigger("Die");
+        animator.SetTrigger("Die");
 
 
         GetComponent<Collider>().enabled = false;
 
-        StartCoroutine(DestroyAfterDeath());
+        //StartCoroutine(DestroyAfterDeath());
     }
 
-    IEnumerator DestroyAfterDeath()
-    {
-        yield return new WaitForSeconds(5); // match your animation length
-        Destroy(gameObject);
-    }
+    //IEnumerator DestroyAfterDeath()
+    //{
+        //yield return new WaitForSeconds(5); // match your animation length
+        //Destroy(gameObject);
+    //}
 
     public Boolean getIsDead()
     {

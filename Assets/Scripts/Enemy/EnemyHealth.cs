@@ -16,7 +16,6 @@ public class EnemyHealth : MonoBehaviour
     public Image healthFill;
     public float maxHealth;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         if (maxHealth == 0) // If health variable is not assigned, defaults to 100
@@ -27,7 +26,6 @@ public class EnemyHealth : MonoBehaviour
         anim = GetComponent<Animator>();    // Get the animator in order to play animations
     }
 
-    // Update is called once per frame
     void Update()
     {
 

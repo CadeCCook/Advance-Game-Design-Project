@@ -9,6 +9,8 @@ public class SpellCaster : MonoBehaviour
     public GameObject waterCirclePrefab;
     public GameObject steamConePrefab;
     public GameObject shockwavePrefab;
+    public GameObject electricBlastPrefab;
+    public GameObject icePrefab;
     public Transform spellOrigin;
     public bool isCasting = false;
 
@@ -170,7 +172,14 @@ public class SpellCaster : MonoBehaviour
 
     void CastElectricBlast(int count)
     {
+        isCasting = true;
+        Vector3 mouseWorldPos = GetMouseWorldPos();
+
+        GameObject electricBlast = Instantiate(electricBlastPrefab, mouseWorldPos, Quaternion.identity);
+
+        Destroy(electricBlast, 1f);
         Debug.Log($"Casting Electric Blast with power: {count}");
+        isCasting = false;
     }
 
     void CastFrost(int count)
@@ -209,7 +218,17 @@ public class SpellCaster : MonoBehaviour
 
     void CastIce(int count)
     {
+        isCasting = true;
+        Vector3 mouseWorldPos = GetMouseWorldPos();
+        Vector3 direction = (mouseWorldPos - spellOrigin.position);
+        direction.y = 0;
+        direction.Normalize();
+
+        GameObject ice = Instantiate(icePrefab, spellOrigin.position, Quaternion.LookRotation(direction));
+        
+        Destroy(ice, 3f);
         Debug.Log($"Casting Ice | Power: {count} | Damage: {GetDamage(iceDamageMultiplier)}");
+        isCasting = false;
     }
 
     void CastPoison(int count)

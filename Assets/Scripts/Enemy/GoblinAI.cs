@@ -7,10 +7,11 @@ public class GoblinAI : MonoBehaviour
     public float speed = 3f;
     public float attackRange = 2f;
 
-    public bool Activated = true; // future detection system hook
+    public bool Activated = false; // detection system
 
     private Animator animator;
     public EnemyHealth health;
+    private Enemy_Cluster_Scr cluster;
 
     private Vector3 knockbackVelocity = Vector3.zero;
     public float knockbackDecay = 5f;
@@ -19,9 +20,22 @@ public class GoblinAI : MonoBehaviour
 
     private Boolean playerInRange;
 
+    private float aggroRange = 10;
+
     void Start()
     {
         animator = GetComponent<Animator>();
+        health = GetComponent<EnemyHealth>();
+
+        Debug.Log(transform.parent);
+
+        cluster = transform.parent.GetComponent<Enemy_Cluster_Scr>();
+
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            player = playerObj.transform;
+        }
     }
 
     public void ApplyKnockback(Vector3 force)
@@ -31,34 +45,54 @@ public class GoblinAI : MonoBehaviour
 
     void Update()
     {
-        if (!Activated) return;
         if (health.getIsDead()) return;
 
-        float distance = Vector3.Distance(transform.position, player.position);
-
-        if (knockbackVelocity.magnitude > 0.05f)
+        if (!Activated) 
         {
-            transform.position += knockbackVelocity * Time.deltaTime;
-            knockbackVelocity = Vector3.Lerp(knockbackVelocity, Vector3.zero, knockbackDecay * Time.deltaTime);
-            return;
+            if (health.health < health.maxHealth)
+            {
+                cluster.detect_Player();
+                Debug.Log("Detected player due to damage.");
+                return;
+            }
+
+            Vector3 diff = player.position - transform.position;
+
+            if (diff.sqrMagnitude <= aggroRange * aggroRange)
+            {
+                cluster.detect_Player();
+                Debug.Log("Detected player due to distance.");
+                return;
+            }
+
         }
+        
         else
         {
-            knockbackVelocity = Vector3.zero;
-        }
+            float distance = Vector3.Distance(transform.position, player.position);
 
-        if (distance > attackRange)
-        {
-            playerInRange = false;
-            MoveTowardPlayer();
-        }
-        else
-        {
-            playerInRange = true;
-            Attack();
-        }
+            if (knockbackVelocity.magnitude > 0.05f)
+            {
+                transform.position += knockbackVelocity * Time.deltaTime;
+                knockbackVelocity = Vector3.Lerp(knockbackVelocity, Vector3.zero, knockbackDecay * Time.deltaTime);
+                return;
+            }
+            else
+            {
+                knockbackVelocity = Vector3.zero;
+            }
 
-
+            if (distance > attackRange)
+            {
+                playerInRange = false;
+                MoveTowardPlayer();
+            }
+            else
+            {
+                playerInRange = true;
+                Attack();
+            }
+        }
     }
 
     void MoveTowardPlayer()
@@ -66,7 +100,7 @@ public class GoblinAI : MonoBehaviour
         Vector3 direction = (player.position - transform.position).normalized;
         transform.position += direction * speed * Time.deltaTime;
 
-        transform.LookAt(player);
+        transform.LookAt(transform.position - (player.position - transform.position));
 
         animator.SetBool("isWalking", true);
         animator.SetBool("isAttacking", false);
@@ -85,5 +119,10 @@ public class GoblinAI : MonoBehaviour
             Debug.Log("Attacking player...");
             player.GetComponent<PlayerHealth>()?.TakeDamage(damageAmount);
         }
+    }
+
+    public void DetectPlayer()
+    {
+        Activated = true;
     }
 }

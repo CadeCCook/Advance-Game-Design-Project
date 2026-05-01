@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public class EnemyHealth : MonoBehaviour
 {
-    float health;     // Initialize health
+    public float health;     // Initialize health
 
     Animator anim;  // Initialize animator
 

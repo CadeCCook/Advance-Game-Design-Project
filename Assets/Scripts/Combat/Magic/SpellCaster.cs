@@ -145,7 +145,8 @@ public class SpellCaster : MonoBehaviour
         float scale = baseWaterScale + (waterCount - 1) * scalePerElement;
         water.transform.localScale = new Vector3(scale, scale, scale);
 
-        // TODO: apply GetDamage(waterDamageMultiplier) to enemies in area
+        float radius = 3f * scale;
+        DealWaterCircleEffect(mouseWorldPos, radius, GetDamage(waterDamageMultiplier), steamShoveForce);
 
         Destroy(water, 2f);
 
@@ -341,4 +342,37 @@ public class SpellCaster : MonoBehaviour
             }
         }
     }
+
+    void DealWaterCircleEffect(Vector3 center, float radius, float damage, float pushForce)
+{
+    Collider[] hits = Physics.OverlapSphere(center, radius);
+
+    foreach (Collider hit in hits)
+    {
+        if (!hit.CompareTag("Enemy")) continue;
+
+        EnemyHealth enemyHealth = hit.GetComponent<EnemyHealth>();
+        if (enemyHealth != null)
+        {
+            enemyHealth.TakeDamage(damage);
+        }
+
+        Vector3 pushDirection = hit.transform.position - center;
+        pushDirection.y = 0;
+
+        if (pushDirection != Vector3.zero)
+        {
+            pushDirection.Normalize();
+        }
+
+        GoblinAI goblinAI = hit.GetComponent<GoblinAI>();
+        if (goblinAI != null)
+        {
+            goblinAI.DetectPlayer();
+            goblinAI.ApplyKnockback(pushDirection * pushForce);
+        }
+
+        Debug.Log("Water circle hit enemy: " + hit.name);
+    }
+}
 }

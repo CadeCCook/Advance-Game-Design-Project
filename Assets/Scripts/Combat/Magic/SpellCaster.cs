@@ -11,6 +11,9 @@ public class SpellCaster : MonoBehaviour
     public GameObject shockwavePrefab;
     public GameObject electricBlastPrefab;
     public GameObject icePrefab;
+    public GameObject poisonCloudPrefab;
+    public GameObject magnetPulsePrefab;
+    public GameObject plasmaBurstPrefab;
     public Transform spellOrigin;
     public bool isCasting = false;
 
@@ -41,6 +44,8 @@ public class SpellCaster : MonoBehaviour
     [Range(0f, 50f)] public float magnetPullForce = 20f;
 
     [Range(1, 20)]   public int   iceProjectileCount = 5;
+
+    [Range(0f, 10f)] public float poisonDuration = 5f;
     
     [Header("Fire Cone Scaling")]
     public float baseDuration = 2f;
@@ -146,7 +151,7 @@ public class SpellCaster : MonoBehaviour
         water.transform.localScale = new Vector3(scale, scale, scale);
 
         float radius = 3f * scale;
-        DealWaterCircleEffect(mouseWorldPos, radius, GetDamage(waterDamageMultiplier), steamShoveForce);
+        DealAreaEffect(mouseWorldPos, radius, GetDamage(waterDamageMultiplier), steamShoveForce);
 
         Destroy(water, 2f);
 
@@ -234,16 +239,58 @@ public class SpellCaster : MonoBehaviour
 
     void CastPoison(int count)
     {
+        isCasting = true;
+        Vector3 mouseWorldPos = GetMouseWorldPos();
+
+        GameObject pool = Instantiate(waterCirclePrefab, mouseWorldPos, Quaternion.identity); // swap for correct prefab later
+        float scale = baseWaterScale + (count - 1) * scalePerElement;
+        pool.transform.localScale = new Vector3(scale, scale, scale);
+
+        float radius = 3f * scale;
+        StartCoroutine(PoisonPoolOverTime(mouseWorldPos, radius, GetDamage(poisonDamageMultiplier), poisonDuration));
+
+        Destroy(pool, poisonDuration);
+        Debug.Log($"Casting Poison | Power: {count}");
+        isCasting = false;
+
         Debug.Log($"Casting Poison | Power: {count} | Damage: {GetDamage(poisonDamageMultiplier)}");
     }
 
     void CastMagnet(int count)
     {
+        isCasting = true;
+        Vector3 mouseWorldPos = GetMouseWorldPos();
+
+        GameObject magnet = Instantiate(waterCirclePrefab, mouseWorldPos, Quaternion.identity);
+        float scale = baseWaterScale + (count - 1) * scalePerElement;
+        magnet.transform.localScale = new Vector3(scale, scale, scale);
+
+        float radius = 3f * scale;
+        DealAreaEffect(mouseWorldPos, radius, GetDamage(magnetDamageMultiplier), -magnetPullForce);
+
+        Destroy(magnet, 2f);
+        Debug.Log($"Casting Magnet | Power: {count}");
+        isCasting = false;
+
         Debug.Log($"Casting Magnet | Power: {count} | Damage: {GetDamage(magnetDamageMultiplier)}");
     }
 
     void CastPlasma(int count)
     {
+        isCasting = true;
+        Vector3 mouseWorldPos = GetMouseWorldPos();
+
+        GameObject plasma = Instantiate(waterCirclePrefab, mouseWorldPos, Quaternion.identity); // swap for correct prefab later
+        float scale = baseWaterScale + (count - 1) * scalePerElement;
+        plasma.transform.localScale = new Vector3(scale, scale, scale);
+
+        float radius = 3f * scale;
+        DealAreaEffect(mouseWorldPos, radius, GetDamage(plasmaDamageMultiplier), 0f);
+
+        Destroy(plasma, 2f);
+        Debug.Log($"Casting Plasma | Power: {count}");
+        isCasting = false;
+
         Debug.Log($"Casting Plasma | Power: {count} | Damage: {GetDamage(plasmaDamageMultiplier)}");
     }
 
@@ -343,36 +390,52 @@ public class SpellCaster : MonoBehaviour
         }
     }
 
-    void DealWaterCircleEffect(Vector3 center, float radius, float damage, float pushForce)
-{
-    Collider[] hits = Physics.OverlapSphere(center, radius);
-
-    foreach (Collider hit in hits)
+    void DealAreaEffect(Vector3 center, float radius, float damage, float pushForce)
     {
-        if (!hit.CompareTag("Enemy")) continue;
+        Collider[] hits = Physics.OverlapSphere(center, radius);
 
-        EnemyHealth enemyHealth = hit.GetComponent<EnemyHealth>();
-        if (enemyHealth != null)
+        foreach (Collider hit in hits)
         {
-            enemyHealth.TakeDamage(damage);
+            if (!hit.CompareTag("Enemy")) continue;
+
+            hit.GetComponent<EnemyHealth>()?.TakeDamage(damage);
+
+            if (pushForce > 0f)
+            {
+                Vector3 pushDirection = (hit.transform.position - center);
+                pushDirection.y = 0;
+                if (pushDirection != Vector3.zero) pushDirection.Normalize();
+
+                GoblinAI ai = hit.GetComponent<GoblinAI>();
+                if (ai != null)
+                {
+                    ai.DetectPlayer();
+                    ai.ApplyKnockback(pushDirection * pushForce);
+                }
+            }
+
+            Debug.Log($"Area effect hit enemy: {hit.name}");
         }
-
-        Vector3 pushDirection = hit.transform.position - center;
-        pushDirection.y = 0;
-
-        if (pushDirection != Vector3.zero)
-        {
-            pushDirection.Normalize();
-        }
-
-        GoblinAI goblinAI = hit.GetComponent<GoblinAI>();
-        if (goblinAI != null)
-        {
-            goblinAI.DetectPlayer();
-            goblinAI.ApplyKnockback(pushDirection * pushForce);
-        }
-
-        Debug.Log("Water circle hit enemy: " + hit.name);
     }
-}
+
+    IEnumerator PoisonPoolOverTime(Vector3 center, float radius, float damage, float duration)
+    {
+        float timer = 0f;
+        while (timer < duration)
+        {
+            Collider[] hits = Physics.OverlapSphere(center, radius);
+            foreach (Collider hit in hits)
+            {
+                if (!hit.CompareTag("Enemy")) continue;
+                hit.GetComponent<EnemyHealth>()?.TakeDamage(damage * 0.1f);
+                Debug.Log($"Poison ticking on enemy: {hit.name}");
+            }
+            timer += 0.5f;
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
+
+
+
 }

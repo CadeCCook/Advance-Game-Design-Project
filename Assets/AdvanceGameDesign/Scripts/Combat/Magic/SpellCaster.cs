@@ -169,6 +169,7 @@ public class SpellCaster : MonoBehaviour
         direction.Normalize();
 
         GameObject shockwave = Instantiate(shockwavePrefab, spellOrigin.position, Quaternion.LookRotation(direction));
+        DealAreaEffect(mouseWorldPos, 5f, GetDamage(earthDamageMultiplier), 0f);
         
         Destroy(shockwave, 3.5f);
         Debug.Log($"Casting Earth Shockwave with power: {count}");
@@ -182,7 +183,9 @@ public class SpellCaster : MonoBehaviour
         Vector3 mouseWorldPos = GetMouseWorldPos();
 
         GameObject electricBlast = Instantiate(electricBlastPrefab, mouseWorldPos, Quaternion.identity);
-
+        DealAreaEffect(mouseWorldPos, 2f, GetDamage(electricDamageMultiplier * count), 0f);
+        StartCoroutine(DealStun(mouseWorldPos, 2f, electricStunDuration * count));
+        
         Destroy(electricBlast, 1f);
         Debug.Log($"Casting Electric Blast with power: {count}");
         isCasting = false;
@@ -435,7 +438,33 @@ public class SpellCaster : MonoBehaviour
         }
     }
 
-
+    IEnumerator DealStun(Vector3 center, float radius, float duration)
+{
+    float maxDuration = 3f;
+    float timer = 0f;
+    
+    if (duration > maxDuration)
+    {
+        duration = maxDuration;
+    }
+    while (timer < duration)
+    {
+        Collider[] hits = Physics.OverlapSphere(center, radius);
+        foreach (Collider hit in hits)
+        {
+            if (!hit.CompareTag("Enemy")) continue;
+            GoblinAI ai = hit.GetComponent<GoblinAI>();
+            if (ai != null)
+            {
+                float remainingTime = duration - timer;
+                ai.ApplyStun(remainingTime);  // Only apply the time left
+            }
+            Debug.Log($"Stunned enemy: {hit.name}");
+        }
+        timer += 0.5f;
+        yield return new WaitForSeconds(0.5f);
+    }
+}
 
 
 }

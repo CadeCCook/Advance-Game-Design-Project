@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using System.Collections;
 
 public class GoblinAI : MonoBehaviour
 {
@@ -22,6 +23,9 @@ public class GoblinAI : MonoBehaviour
 
     private float aggroRange = 10;
 
+    private Coroutine stunCoroutine;
+    public bool isStunned {get; private set;}
+
     void Start()
     {
         animator = GetComponent<Animator>();
@@ -43,9 +47,19 @@ public class GoblinAI : MonoBehaviour
         knockbackVelocity += force;
     }
 
+    public void ApplyStun(float duration)
+    {
+        if (stunCoroutine != null)
+        {
+            StopCoroutine(stunCoroutine);
+        }
+        stunCoroutine = StartCoroutine(StunCoroutine(duration));
+    }
+
     void Update()
     {
         if (health.getIsDead()) return;
+        if (isStunned) return;
 
         if (!Activated) 
         {
@@ -124,5 +138,17 @@ public class GoblinAI : MonoBehaviour
     public void DetectPlayer()
     {
         Activated = true;
+    }
+
+    private IEnumerator StunCoroutine(float duration)
+    {
+        isStunned = true;
+        animator.SetBool("isWalking", false);
+        animator.SetBool("isAttacking", false);
+
+        yield return new WaitForSeconds(duration);
+
+        isStunned = false;
+        stunCoroutine = null;
     }
 }

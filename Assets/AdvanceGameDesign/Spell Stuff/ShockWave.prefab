@@ -4648,7 +4648,7 @@ GameObject:
   - component: {fileID: 198345217066185332}
   - component: {fileID: 199528594520767084}
   m_Layer: 0
-  m_Name: EarthShatter Clone
+  m_Name: ShockWave
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

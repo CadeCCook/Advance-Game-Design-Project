@@ -4860,7 +4860,7 @@ GameObject:
   - component: {fileID: 8716968184060618591}
   - component: {fileID: 1743185943456502426}
   m_Layer: 0
-  m_Name: PressurisedSteam Clone
+  m_Name: SteamCone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

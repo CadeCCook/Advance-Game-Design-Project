@@ -15,6 +15,12 @@ public class NecromancerAI : MonoBehaviour
     private Animator animator;
     private bool playerDetected = false;
 
+    [Header("Skeleton Summon")]
+    public SkeletonMinion[] skeletons;
+    public float reviveDelay = 6f;
+
+    private bool skeletonsActivated = false;
+
     [Header("Lightning Attack")]
     public float attackRange = 15f;
     public float attackCooldown = 4f;
@@ -76,7 +82,7 @@ public class NecromancerAI : MonoBehaviour
                 );
             }
 
-        if (playerDetected && distanceToPlayer > attackRange)
+        if (playerDetected && distanceToPlayer > stopDistance)
             {
                 MoveTowardPlayer();
             }
@@ -85,7 +91,13 @@ public class NecromancerAI : MonoBehaviour
                 if (animator != null)
                 animator.SetBool("isWalking", false);
             }
-        }
+
+        if (!skeletonsActivated && distanceToPlayer <= attackRange)
+            {
+                skeletonsActivated = true;
+                ReviveAllSkeletons();
+            }
+    }
 
     void MoveTowardPlayer()
     {
@@ -97,6 +109,27 @@ public class NecromancerAI : MonoBehaviour
 
         if (animator != null)
         animator.SetBool("isWalking", true);
+    }
+
+    void ReviveAllSkeletons()
+    {
+        foreach (SkeletonMinion skeleton in skeletons)
+            {
+                if (skeleton != null && !skeleton.isAlive)
+                    {
+                        skeleton.Revive();
+                    }
+            }
+    }
+
+    IEnumerator ReviveSkeletonAfterDelay(SkeletonMinion skeleton)
+    {
+        yield return new WaitForSeconds(reviveDelay);
+
+        if (skeleton != null && !skeleton.isAlive)
+            {
+                skeleton.Revive();
+            }
     }
 
     IEnumerator CastLightningAttack()

@@ -326,7 +326,17 @@ public class SpellCaster : MonoBehaviour
                 if (ai != null)
                     ai.ApplyKnockback(forward * steamShoveForce);
 
-                hit.GetComponent<EnemyHealth>()?.TakeDamage(GetDamage(steamDamageMultiplier) * 0.1f);
+                EnemyHealth enemyHealth = hit.GetComponent<EnemyHealth>();
+                if (enemyHealth != null)
+                    {
+                        enemyHealth.TakeDamage(GetDamage(steamDamageMultiplier) * 0.1f);
+                    }
+
+                BossHealth bossHealth = hit.GetComponent<BossHealth>();
+                if (bossHealth != null)
+                    {
+                        bossHealth.TakeDamage(GetDamage(steamDamageMultiplier) * 0.1f);
+                    }
                 Debug.Log("Steam shoved enemy: " + hit.name);
             }
         }
@@ -388,7 +398,17 @@ public class SpellCaster : MonoBehaviour
             if (currentAngle <= angle * 0.5f)
             {
                 Debug.Log("Hit enemy: " + hit.name + " at angle " + currentAngle);
-                hit.GetComponent<EnemyHealth>()?.TakeDamage(damage * 0.1f);
+                EnemyHealth enemyHealth = hit.GetComponent<EnemyHealth>();
+                    if (enemyHealth != null)
+                        {
+                            enemyHealth.TakeDamage(damage);
+                        }
+
+                BossHealth bossHealth = hit.GetComponent<BossHealth>();
+                    if (bossHealth != null)
+                        {
+                            bossHealth.TakeDamage(damage);
+                        }
             }
         }
     }
@@ -401,7 +421,17 @@ public class SpellCaster : MonoBehaviour
         {
             if (!hit.CompareTag("Enemy")) continue;
 
-            hit.GetComponent<EnemyHealth>()?.TakeDamage(damage);
+            EnemyHealth enemyHealth = hit.GetComponent<EnemyHealth>();
+                if (enemyHealth != null)
+                    {
+                        enemyHealth.TakeDamage(damage);
+                    }
+
+            BossHealth bossHealth = hit.GetComponent<BossHealth>();
+                if (bossHealth != null)
+                    {
+                        bossHealth.TakeDamage(damage);
+                    }
 
             if (pushForce > 0f)
             {
@@ -430,7 +460,17 @@ public class SpellCaster : MonoBehaviour
             foreach (Collider hit in hits)
             {
                 if (!hit.CompareTag("Enemy")) continue;
-                hit.GetComponent<EnemyHealth>()?.TakeDamage(damage * 0.1f);
+                EnemyHealth enemyHealth = hit.GetComponent<EnemyHealth>();
+                if (enemyHealth != null)
+                    {
+                        enemyHealth.TakeDamage(damage * 0.1f);
+                    }
+
+                BossHealth bossHealth = hit.GetComponent<BossHealth>();
+                if (bossHealth != null)
+                    {
+                        bossHealth.TakeDamage(damage * 0.1f);
+                    }
                 Debug.Log($"Poison ticking on enemy: {hit.name}");
             }
             timer += 0.5f;

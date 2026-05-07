@@ -28,7 +28,15 @@ public class ElementList : MonoBehaviour
         { (Element.Water, Element.Earth), Element.Poison },
         { (Element.Water, Element.Frost), Element.Ice },
         { (Element.Earth, Element.Electric), Element.Magnet },
-        { (Element.Electric, Element.Fire), Element.Plasma }
+        { (Element.Electric, Element.Fire), Element.Plasma },
+        { (Element.Ice, Element.Fire), Element.Water },
+        { (Element.Steam, Element.Frost), Element.Water }
+
+    };
+
+    private HashSet<(Element, Element)> cancellations = new()
+    {
+        { (Element.Fire, Element.Frost) }
     };
 
     void Update()
@@ -51,21 +59,28 @@ public class ElementList : MonoBehaviour
         for (int i = elements.Count - 1; i >= 0; i--)
         {
             Element existing = elements[i];
-            
+
+            // Check cancellations first
+            if (cancellations.Contains((existing, newElement)) ||
+                cancellations.Contains((newElement, existing)))
+            {
+                elements.RemoveAt(i);
+                combined = true;
+                break;
+            }
+
             if (recipes.TryGetValue((existing, newElement), out Element result) ||
                 recipes.TryGetValue((newElement, existing), out result))
             {
                 elements.RemoveAt(i);
                 elements.Add(result);
                 combined = true;
-                break; 
+                break;
             }
         }
 
         if (!combined && elements.Count < 6)
-        {
             elements.Add(newElement);
-        }
 
         onListChanged.Invoke();
     }

@@ -25,6 +25,11 @@ public class GoblinAI : MonoBehaviour
 
     private Coroutine stunCoroutine;
     public bool isStunned {get; private set;}
+    private Coroutine slowCoroutine;
+
+    public bool isSlowed { get; private set; }
+
+    private float originalSpeed;
 
     void Start()
     {
@@ -150,5 +155,27 @@ public class GoblinAI : MonoBehaviour
 
         isStunned = false;
         stunCoroutine = null;
+    }
+
+    public void ApplySlow(float slowPercent, float duration)
+    {
+        if (slowCoroutine != null)
+            StopCoroutine(slowCoroutine);
+        slowCoroutine = StartCoroutine(SlowCoroutine(slowPercent, duration));
+    }
+
+    private IEnumerator SlowCoroutine(float slowPercent, float duration)
+    {
+        if (!isSlowed)
+            originalSpeed = speed;
+
+        isSlowed = true;
+        speed = originalSpeed * (1f - slowPercent);
+
+        yield return new WaitForSeconds(duration);
+
+        speed = originalSpeed;
+        isSlowed = false;
+        slowCoroutine = null;
     }
 }

@@ -43,7 +43,9 @@ public class SpellCaster : MonoBehaviour
 
     [Range(0f, 50f)] public float magnetPullForce = 20f;
 
-    [Range(1, 20)]   public int   iceProjectileCount = 5;
+    [Range(1, 20)]   public int   iceProjectileCountMult = 1;
+
+    [Range(0, 20)]   public int   iceProjectileCountAdd = 0;
 
     [Range(0f, 10f)] public float poisonDuration = 5f;
     
@@ -111,7 +113,16 @@ public class SpellCaster : MonoBehaviour
         return groundPlane.Raycast(ray, out float enter) ? ray.GetPoint(enter) : Vector3.zero;
     }
 
-    void CastFireCone(int fireCount)
+    void ScaleParticleSystems(GameObject obj, float scale)
+    {
+        foreach (ParticleSystem ps in obj.GetComponentsInChildren<ParticleSystem>())
+        {
+            var main = ps.main;
+            main.startSizeMultiplier *= scale;
+        }
+    }
+
+    void CastFireCone(int count)
     {
         isCasting = true;
         Vector3 mouseWorldPos = GetMouseWorldPos();
@@ -121,9 +132,9 @@ public class SpellCaster : MonoBehaviour
 
         Quaternion rotation = Quaternion.LookRotation(direction, Vector3.up);
         GameObject cone = Instantiate(fireConePrefab, spellOrigin.position, rotation);
-        float duration = baseDuration + (fireCount - 1) * durationPerElement;
+        float duration = baseDuration + (count - 1) * durationPerElement;
 
-        StartCoroutine(DamageOverTime(duration, direction, GetDamage(fireDamageMultiplier)));
+        StartCoroutine(DamageOverTime(duration, cone.transform, GetDamage(fireDamageMultiplier * count)));
 
         ParticleSystem ps = cone.GetComponent<ParticleSystem>();
         if (ps != null)
@@ -138,16 +149,16 @@ public class SpellCaster : MonoBehaviour
         StartCoroutine(TrackCursor(cone, duration));
         Destroy(cone, duration + 1f);
 
-        Debug.Log($"Casting Fire Cone with power: {fireCount}");
+        Debug.Log($"Casting Fire Cone with power: {count}");
         isCasting = false;
     }
-    void CastWaterCircle(int waterCount)
+    void CastWaterCircle(int count)
     {
         isCasting = true;
         Vector3 mouseWorldPos = GetMouseWorldPos();
 
         GameObject water = Instantiate(waterCirclePrefab, mouseWorldPos, Quaternion.identity);
-        float scale = baseWaterScale + (waterCount - 1) * scalePerElement;
+        float scale = baseWaterScale + (count - 1) * scalePerElement;
         water.transform.localScale = new Vector3(scale, scale, scale);
 
         float radius = 3f * scale;
@@ -155,7 +166,7 @@ public class SpellCaster : MonoBehaviour
 
         Destroy(water, 2f);
 
-        Debug.Log($"Casting Water Circle with power: {waterCount}");
+        Debug.Log($"Casting Water Circle with power: {count}");
 
         isCasting = false;
     }
@@ -207,8 +218,9 @@ public class SpellCaster : MonoBehaviour
         Quaternion rotation = Quaternion.LookRotation(direction, Vector3.up);
         GameObject cone = Instantiate(steamConePrefab, spellOrigin.position, rotation);
         float duration = baseDuration + (count - 1) * durationPerElement;
+        ScaleParticleSystems(cone, 1f);
 
-        StartCoroutine(ShoveOverTime(duration, direction));
+        StartCoroutine(ShoveOverTime(duration, cone.transform, GetDamage(steamDamageMultiplier * count)));
 
         ParticleSystem ps = cone.GetComponent<ParticleSystem>();
         if (ps != null)
@@ -232,11 +244,22 @@ public class SpellCaster : MonoBehaviour
         Vector3 direction = (mouseWorldPos - spellOrigin.position);
         direction.y = 0;
         direction.Normalize();
+        int iceProjectileCount = count * iceProjectileCountMult + iceProjectileCountAdd;
 
-        GameObject ice = Instantiate(icePrefab, spellOrigin.position, Quaternion.LookRotation(direction));
-        
-        Destroy(ice, 3f);
-        Debug.Log($"Casting Ice | Power: {count} | Damage: {GetDamage(iceDamageMultiplier)}");
+        for (int i = 0; i < iceProjectileCount; i++)
+        {
+            // Spread each projectile evenly across a 30 degree arc
+            float spreadAngle = iceProjectileCount > 1 
+                ? Mathf.Lerp(-15f, 15f, (float)i / (iceProjectileCount - 1)) 
+                : 0f;
+            Vector3 spreadDirection = Quaternion.Euler(0, spreadAngle, 0) * direction;
+
+            Quaternion spawnRotation = Quaternion.LookRotation(spreadDirection) * Quaternion.Euler(0, -90f, 0);
+            GameObject icicle = Instantiate(icePrefab, spellOrigin.position, spawnRotation);
+            icicle.GetComponent<IcicleProjectile>()?.Init(spreadDirection, GetDamage(iceDamageMultiplier));
+        }
+
+        Debug.Log($"Casting Ice | Power: {count} | Projectiles: {iceProjectileCount} | Damage: {GetDamage(iceDamageMultiplier)}");
         isCasting = false;
     }
 
@@ -245,12 +268,14 @@ public class SpellCaster : MonoBehaviour
         isCasting = true;
         Vector3 mouseWorldPos = GetMouseWorldPos();
 
-        GameObject pool = Instantiate(waterCirclePrefab, mouseWorldPos, Quaternion.identity); // swap for correct prefab later
+        GameObject pool = Instantiate(poisonCloudPrefab, mouseWorldPos, Quaternion.identity); // swap for correct prefab later
         float scale = baseWaterScale + (count - 1) * scalePerElement;
         pool.transform.localScale = new Vector3(scale, scale, scale);
+        ScaleParticleSystems(poisonCloudPrefab, scale);
 
         float radius = 3f * scale;
         StartCoroutine(PoisonPoolOverTime(mouseWorldPos, radius, GetDamage(poisonDamageMultiplier), poisonDuration));
+        StartCoroutine(DealSlow(mouseWorldPos, radius, poisonSlowPercent, poisonDuration));
 
         Destroy(pool, poisonDuration);
         Debug.Log($"Casting Poison | Power: {count}");
@@ -264,15 +289,15 @@ public class SpellCaster : MonoBehaviour
         isCasting = true;
         Vector3 mouseWorldPos = GetMouseWorldPos();
 
-        GameObject magnet = Instantiate(waterCirclePrefab, mouseWorldPos, Quaternion.identity);
+        GameObject magnet = Instantiate(magnetPulsePrefab, mouseWorldPos, Quaternion.identity);
         float scale = baseWaterScale + (count - 1) * scalePerElement;
         magnet.transform.localScale = new Vector3(scale, scale, scale);
 
-        float radius = 3f * scale;
-        DealAreaEffect(mouseWorldPos, radius, GetDamage(magnetDamageMultiplier), -magnetPullForce);
+        float radius = 1f * scale;
+        DealAreaEffect(mouseWorldPos, radius, GetDamage(magnetDamageMultiplier * count), 0f);
+        StartCoroutine(MagnetPullOverTime(mouseWorldPos, radius, 2f));
 
         Destroy(magnet, 2f);
-        Debug.Log($"Casting Magnet | Power: {count}");
         isCasting = false;
 
         Debug.Log($"Casting Magnet | Power: {count} | Damage: {GetDamage(magnetDamageMultiplier)}");
@@ -283,7 +308,7 @@ public class SpellCaster : MonoBehaviour
         isCasting = true;
         Vector3 mouseWorldPos = GetMouseWorldPos();
 
-        GameObject plasma = Instantiate(waterCirclePrefab, mouseWorldPos, Quaternion.identity); // swap for correct prefab later
+        GameObject plasma = Instantiate(plasmaBurstPrefab, mouseWorldPos, Quaternion.identity); // swap for correct prefab later
         float scale = baseWaterScale + (count - 1) * scalePerElement;
         plasma.transform.localScale = new Vector3(scale, scale, scale);
 
@@ -297,18 +322,18 @@ public class SpellCaster : MonoBehaviour
         Debug.Log($"Casting Plasma | Power: {count} | Damage: {GetDamage(plasmaDamageMultiplier)}");
     }
 
-    IEnumerator ShoveOverTime(float duration, Vector3 direction)
+    IEnumerator ShoveOverTime(float duration, Transform coneTransform, float damage)
     {
         float timer = 0f;
         while (timer < duration)
         {
-            ShoveCone(spellOrigin.position, direction, 5f, 60f);
+            ShoveCone(spellOrigin.position, coneTransform.forward, 5f, 60f, damage);
             timer += 0.1f;
             yield return new WaitForSeconds(0.1f);
         }
     }
 
-    void ShoveCone(Vector3 origin, Vector3 forward, float range, float angle)
+    void ShoveCone(Vector3 origin, Vector3 forward, float range, float angle, float damage)
     {
         Collider[] hits = Physics.OverlapSphere(origin, range);
 
@@ -329,13 +354,13 @@ public class SpellCaster : MonoBehaviour
                 EnemyHealth enemyHealth = hit.GetComponent<EnemyHealth>();
                 if (enemyHealth != null)
                     {
-                        enemyHealth.TakeDamage(GetDamage(steamDamageMultiplier) * 0.1f);
+                        enemyHealth.TakeDamage(damage * 0.1f);
                     }
 
                 BossHealth bossHealth = hit.GetComponent<BossHealth>();
                 if (bossHealth != null)
                     {
-                        bossHealth.TakeDamage(GetDamage(steamDamageMultiplier) * 0.1f);
+                        bossHealth.TakeDamage(damage * 0.1f);
                     }
                 Debug.Log("Steam shoved enemy: " + hit.name);
             }
@@ -372,17 +397,16 @@ public class SpellCaster : MonoBehaviour
         isCasting = false;
     }
 
-    IEnumerator DamageOverTime(float duration, Vector3 direction, float damage)
+    IEnumerator DamageOverTime(float duration, Transform coneTransform, float damage)
     {
         float timer = 0f;
         while (timer < duration)
         {
-            DealConeDamage(spellOrigin.position, direction, 5f, 60f, damage);
+            DealConeDamage(spellOrigin.position, coneTransform.forward, 5f, 60f, damage);
             timer += 0.1f;
             yield return new WaitForSeconds(0.1f);
         }
     }
-
     void DealConeDamage(Vector3 origin, Vector3 forward, float range, float angle, float damage)
     {
         Collider[] hits = Physics.OverlapSphere(origin, range);
@@ -478,33 +502,69 @@ public class SpellCaster : MonoBehaviour
         }
     }
 
-    IEnumerator DealStun(Vector3 center, float radius, float duration)
-{
-    float maxDuration = 3f;
-    float timer = 0f;
-    
-    if (duration > maxDuration)
+    IEnumerator MagnetPullOverTime(Vector3 center, float radius, float duration)
     {
-        duration = maxDuration;
+        float timer = 0f;
+        while (timer < duration)
+        {
+            Collider[] hits = Physics.OverlapSphere(center, radius);
+            foreach (Collider hit in hits)
+            {
+                if (!hit.CompareTag("Enemy")) continue;
+
+                GoblinAI ai = hit.GetComponent<GoblinAI>();
+                if (ai != null)
+                {
+                    Vector3 pullDirection = (center - hit.transform.position);
+                    pullDirection.y = 0;
+                    if (pullDirection != Vector3.zero) pullDirection.Normalize();
+                    ai.DetectPlayer();
+                    ai.ApplyKnockback(pullDirection * magnetPullForce);
+                }
+            }
+            timer += 0.1f;
+            yield return new WaitForSeconds(0.1f);
+        }
     }
-    while (timer < duration)
+
+    IEnumerator DealStun(Vector3 center, float radius, float duration)
+    {
+        float maxDuration = 3f;
+        float timer = 0f;
+        
+        if (duration > maxDuration)
+        {
+            duration = maxDuration;
+        }
+        while (timer < duration)
+        {
+            Collider[] hits = Physics.OverlapSphere(center, radius);
+            foreach (Collider hit in hits)
+            {
+                if (!hit.CompareTag("Enemy")) continue;
+                GoblinAI ai = hit.GetComponent<GoblinAI>();
+                if (ai != null)
+                {
+                    float remainingTime = duration - timer;
+                    ai.ApplyStun(remainingTime);  // Only apply the time left
+                }
+                Debug.Log($"Stunned enemy: {hit.name}");
+            }
+            timer += 0.5f;
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
+    IEnumerator DealSlow(Vector3 center, float radius, float slowPercent, float duration)
     {
         Collider[] hits = Physics.OverlapSphere(center, radius);
         foreach (Collider hit in hits)
         {
             if (!hit.CompareTag("Enemy")) continue;
-            GoblinAI ai = hit.GetComponent<GoblinAI>();
-            if (ai != null)
-            {
-                float remainingTime = duration - timer;
-                ai.ApplyStun(remainingTime);  // Only apply the time left
-            }
-            Debug.Log($"Stunned enemy: {hit.name}");
+            hit.GetComponent<GoblinAI>()?.ApplySlow(slowPercent, duration);
         }
-        timer += 0.5f;
-        yield return new WaitForSeconds(0.5f);
+        yield return null;
     }
-}
 
 
 }

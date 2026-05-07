@@ -14,6 +14,7 @@ public class SpellCaster : MonoBehaviour
     public GameObject poisonCloudPrefab;
     public GameObject magnetPulsePrefab;
     public GameObject plasmaBurstPrefab;
+    public GameObject frostPrefab;
     public Transform spellOrigin;
     public bool isCasting = false;
 
@@ -204,7 +205,16 @@ public class SpellCaster : MonoBehaviour
 
     void CastFrost(int count)
     {
+        isCasting = true;
+        Vector3 mouseWorldPos = GetMouseWorldPos();
+
+        GameObject frost = Instantiate(frostPrefab, mouseWorldPos, Quaternion.identity);
+        DealAreaEffect(mouseWorldPos, 3f, GetDamage(frostDamageMultiplier), 0f);
+        StartCoroutine(DealSlow(mouseWorldPos, 3f, frostSlowPercent * count, 5f));
+        
+        Destroy(frost, 4f);
         Debug.Log($"Casting Frost | Power: {count} | Damage: {GetDamage(frostDamageMultiplier)}");
+        isCasting = false;
     }
 
     void CastSteamCone(int count) 

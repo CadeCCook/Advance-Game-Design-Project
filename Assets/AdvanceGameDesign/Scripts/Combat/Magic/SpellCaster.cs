@@ -53,11 +53,6 @@ public class SpellCaster : MonoBehaviour
     [Header("Fire Cone Scaling")]
     public float baseDuration = 2f;
     public float durationPerElement = 1f;
-
-
-    [Header("Water Circle Scaling")]
-    public float baseWaterScale = 1f;
-    public float scalePerElement = 0.5f;
     
 
     private Camera mainCam;
@@ -150,7 +145,7 @@ public class SpellCaster : MonoBehaviour
         StartCoroutine(TrackCursor(cone, duration));
         Destroy(cone, duration + 1f);
 
-        Debug.Log($"Casting Fire Cone with power: {count}");
+        Debug.Log($"Casting Fire Cone | Power: {count} | Damage: {GetDamage(fireDamageMultiplier * count)}");
         isCasting = false;
     }
     void CastWaterCircle(int count)
@@ -159,15 +154,14 @@ public class SpellCaster : MonoBehaviour
         Vector3 mouseWorldPos = GetMouseWorldPos();
 
         GameObject water = Instantiate(waterCirclePrefab, mouseWorldPos, Quaternion.identity);
-        float scale = baseWaterScale + (count - 1) * scalePerElement;
-        water.transform.localScale = new Vector3(scale, scale, scale);
+        float  scale = ApplySpellScale(water, count);
 
         float radius = 3f * scale;
-        DealAreaEffect(mouseWorldPos, radius, GetDamage(waterDamageMultiplier), steamShoveForce);
+        DealAreaEffect(mouseWorldPos, radius, GetDamage(waterDamageMultiplier * count), steamShoveForce);
 
         Destroy(water, 2f);
 
-        Debug.Log($"Casting Water Circle with power: {count}");
+        Debug.Log($"Casting Water Circle | Power: {count} | Damage: {GetDamage(waterDamageMultiplier * count)}");
 
         isCasting = false;
     }
@@ -181,10 +175,11 @@ public class SpellCaster : MonoBehaviour
         direction.Normalize();
 
         GameObject shockwave = Instantiate(shockwavePrefab, spellOrigin.position, Quaternion.LookRotation(direction));
-        DealAreaEffect(mouseWorldPos, 5f, GetDamage(earthDamageMultiplier), 0f);
+        DealAreaEffect(mouseWorldPos, 5f, GetDamage(earthDamageMultiplier * count), 1f * count);
+        
         
         Destroy(shockwave, 3.5f);
-        Debug.Log($"Casting Earth Shockwave with power: {count}");
+        Debug.Log($"Casting Earth Shockwave | Power: {count} | Damage: {GetDamage(earthDamageMultiplier * count)}");
 
         isCasting = false;
     }
@@ -199,7 +194,7 @@ public class SpellCaster : MonoBehaviour
         StartCoroutine(DealStun(mouseWorldPos, 2f, electricStunDuration * count));
         
         Destroy(electricBlast, 1f);
-        Debug.Log($"Casting Electric Blast with power: {count}");
+        Debug.Log($"Casting Electric Blast | Power: {count} | Damage: {GetDamage(electricDamageMultiplier * count)} | Stun: {electricStunDuration * count} seconds");
         isCasting = false;
     }
 
@@ -210,7 +205,7 @@ public class SpellCaster : MonoBehaviour
 
         GameObject frost = Instantiate(frostPrefab, mouseWorldPos, Quaternion.identity);
         DealAreaEffect(mouseWorldPos, 3f, GetDamage(frostDamageMultiplier), 0f);
-        StartCoroutine(DealSlow(mouseWorldPos, 3f, frostSlowPercent * count, 5f));
+        StartCoroutine(DealSlow(mouseWorldPos, 3f, frostSlowPercent, 5f));
         
         Destroy(frost, 4f);
         Debug.Log($"Casting Frost | Power: {count} | Damage: {GetDamage(frostDamageMultiplier)}");
@@ -279,8 +274,7 @@ public class SpellCaster : MonoBehaviour
         Vector3 mouseWorldPos = GetMouseWorldPos();
 
         GameObject pool = Instantiate(poisonCloudPrefab, mouseWorldPos, Quaternion.identity); // swap for correct prefab later
-        float scale = baseWaterScale + (count - 1) * scalePerElement;
-        pool.transform.localScale = new Vector3(scale, scale, scale);
+        float scale = ApplySpellScale(pool, count);
         ScaleParticleSystems(poisonCloudPrefab, scale);
 
         float radius = 3f * scale;
@@ -288,7 +282,6 @@ public class SpellCaster : MonoBehaviour
         StartCoroutine(DealSlow(mouseWorldPos, radius, poisonSlowPercent, poisonDuration));
 
         Destroy(pool, poisonDuration);
-        Debug.Log($"Casting Poison | Power: {count}");
         isCasting = false;
 
         Debug.Log($"Casting Poison | Power: {count} | Damage: {GetDamage(poisonDamageMultiplier)}");
@@ -300,8 +293,8 @@ public class SpellCaster : MonoBehaviour
         Vector3 mouseWorldPos = GetMouseWorldPos();
 
         GameObject magnet = Instantiate(magnetPulsePrefab, mouseWorldPos, Quaternion.identity);
-        float scale = baseWaterScale + (count - 1) * scalePerElement;
-        magnet.transform.localScale = new Vector3(scale, scale, scale);
+        float scale = ApplySpellScale(magnet, count);
+        
 
         float radius = 1f * scale;
         DealAreaEffect(mouseWorldPos, radius, GetDamage(magnetDamageMultiplier * count), 0f);
@@ -319,14 +312,12 @@ public class SpellCaster : MonoBehaviour
         Vector3 mouseWorldPos = GetMouseWorldPos();
 
         GameObject plasma = Instantiate(plasmaBurstPrefab, mouseWorldPos, Quaternion.identity); // swap for correct prefab later
-        float scale = baseWaterScale + (count - 1) * scalePerElement;
-        plasma.transform.localScale = new Vector3(scale, scale, scale);
+        float scale = ApplySpellScale(plasma, count);
 
         float radius = 3f * scale;
         DealAreaEffect(mouseWorldPos, radius, GetDamage(plasmaDamageMultiplier), 0f);
 
         Destroy(plasma, 2f);
-        Debug.Log($"Casting Plasma | Power: {count}");
         isCasting = false;
 
         Debug.Log($"Casting Plasma | Power: {count} | Damage: {GetDamage(plasmaDamageMultiplier)}");
@@ -576,5 +567,11 @@ public class SpellCaster : MonoBehaviour
         yield return null;
     }
 
+    float ApplySpellScale(GameObject spell, int count)
+    {
+        float scale = 1f + (count - 1) * 0.5f;
+        spell.transform.localScale = new Vector3(scale, scale, scale);
+        return scale;
+    }
 
 }

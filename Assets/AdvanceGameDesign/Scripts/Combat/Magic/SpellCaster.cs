@@ -130,7 +130,7 @@ public class SpellCaster : MonoBehaviour
         GameObject cone = Instantiate(fireConePrefab, spellOrigin.position, rotation);
         float duration = baseDuration + (count - 1) * durationPerElement;
 
-        StartCoroutine(DamageOverTime(duration, cone.transform, GetDamage(fireDamageMultiplier * count)));
+        StartCoroutine(DamageOverTime(duration, cone.transform, GetDamage(fireDamageMultiplier * count/6)));
 
         ParticleSystem ps = cone.GetComponent<ParticleSystem>();
         if (ps != null)
@@ -204,7 +204,7 @@ public class SpellCaster : MonoBehaviour
         Vector3 mouseWorldPos = GetMouseWorldPos();
 
         GameObject frost = Instantiate(frostPrefab, mouseWorldPos, Quaternion.identity);
-        DealAreaEffect(mouseWorldPos, 3f, GetDamage(frostDamageMultiplier), 0f);
+        DealAreaEffect(mouseWorldPos, 3f, GetDamage(frostDamageMultiplier * count), 0f);
         StartCoroutine(DealSlow(mouseWorldPos, 3f, frostSlowPercent, 5f));
         
         Destroy(frost, 4f);
@@ -225,7 +225,7 @@ public class SpellCaster : MonoBehaviour
         float duration = baseDuration + (count - 1) * durationPerElement;
         ScaleParticleSystems(cone, 1f);
 
-        StartCoroutine(ShoveOverTime(duration, cone.transform, GetDamage(steamDamageMultiplier * count)));
+        StartCoroutine(ShoveOverTime(duration, cone.transform, GetDamage(steamDamageMultiplier * count * 2)));
 
         ParticleSystem ps = cone.GetComponent<ParticleSystem>();
         if (ps != null)
@@ -278,7 +278,7 @@ public class SpellCaster : MonoBehaviour
         ScaleParticleSystems(poisonCloudPrefab, scale);
 
         float radius = 3f * scale;
-        StartCoroutine(PoisonPoolOverTime(mouseWorldPos, radius, GetDamage(poisonDamageMultiplier), poisonDuration));
+        StartCoroutine(PoisonPoolOverTime(mouseWorldPos, radius, GetDamage(poisonDamageMultiplier * count), poisonDuration));
         StartCoroutine(DealSlow(mouseWorldPos, radius, poisonSlowPercent, poisonDuration));
 
         Destroy(pool, poisonDuration);
@@ -315,7 +315,7 @@ public class SpellCaster : MonoBehaviour
         float scale = ApplySpellScale(plasma, count);
 
         float radius = 3f * scale;
-        DealAreaEffect(mouseWorldPos, radius, GetDamage(plasmaDamageMultiplier), 0f);
+        DealAreaEffect(mouseWorldPos, radius, GetDamage(plasmaDamageMultiplier * count), 0f);
 
         Destroy(plasma, 2f);
         isCasting = false;
@@ -361,7 +361,8 @@ public class SpellCaster : MonoBehaviour
                 SkeletonMinion skeletonMinion = hit.GetComponent<SkeletonMinion>();
                 if (skeletonMinion != null)
                     {
-                        skeletonMinion.TakeDamage(damage);
+                        skeletonMinion.TakeDamage(damage * 0.1f);
+                        skeletonMinion.ApplyKnockback(forward * steamShoveForce);
                     }
 
                 BossHealth bossHealth = hit.GetComponent<BossHealth>();
@@ -514,7 +515,7 @@ public class SpellCaster : MonoBehaviour
                 SkeletonMinion skeletonMinion = hit.GetComponentInParent<SkeletonMinion>();
                 if (skeletonMinion != null)
                 {
-                    skeletonMinion.TakeDamage(damage);
+                    skeletonMinion.TakeDamage(damage * 0.1f);
                 }
 
                 BossHealth bossHealth = hit.GetComponent<BossHealth>();
@@ -548,6 +549,16 @@ public class SpellCaster : MonoBehaviour
                     ai.DetectPlayer();
                     ai.ApplyKnockback(pullDirection * magnetPullForce);
                 }
+
+                SkeletonMinion skeleton = hit.GetComponent<SkeletonMinion>();
+                if (skeleton != null)
+                {
+                    Vector3 pullDirection = (center - hit.transform.position);
+                    pullDirection.y = 0;
+                    if (pullDirection != Vector3.zero) pullDirection.Normalize();
+                    skeleton.ApplyKnockback(pullDirection * magnetPullForce);
+                }
+                
             }
             timer += 0.1f;
             yield return new WaitForSeconds(0.1f);
@@ -575,6 +586,13 @@ public class SpellCaster : MonoBehaviour
                     float remainingTime = duration - timer;
                     ai.ApplyStun(remainingTime);  // Only apply the time left
                 }
+
+                SkeletonMinion skeleton = hit.GetComponent<SkeletonMinion>();
+                if (skeleton != null)
+                {
+                    float remainingTime = duration - timer;
+                    skeleton.ApplyStun(remainingTime);
+                }
                 Debug.Log($"Stunned enemy: {hit.name}");
             }
             timer += 0.5f;
@@ -589,6 +607,7 @@ public class SpellCaster : MonoBehaviour
         {
             if (!hit.CompareTag("Enemy")) continue;
             hit.GetComponent<GoblinAI>()?.ApplySlow(slowPercent, duration);
+            hit.GetComponent<SkeletonMinion>()?.ApplySlow(slowPercent, duration);
         }
         yield return null;
     }

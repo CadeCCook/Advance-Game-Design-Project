@@ -29,6 +29,8 @@ public class IcicleProjectile : MonoBehaviour
         if (!other.CompareTag("Enemy")) return;
 
         other.GetComponent<EnemyHealth>()?.TakeDamage(damage);
+        other.GetComponent<SkeletonMinion>()?.TakeDamage(damage);
+        other.GetComponent<BossHealth>()?.TakeDamage(damage);
         Debug.Log($"Icicle hit: {other.name}");
         Destroy(gameObject);
     }

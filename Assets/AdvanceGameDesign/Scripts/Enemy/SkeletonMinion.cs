@@ -21,12 +21,24 @@ public class SkeletonMinion : MonoBehaviour
     private Animator animator;
     private Collider col;
 
+    private Vector3 knockbackVelocity = Vector3.zero;
+    public float knockbackDecay = 5f;
+
+    private Coroutine slowCoroutine;
+    private bool isSlowed = false;
+    private float originalSpeed;
+
+    private Coroutine stunCoroutine;
+    public bool isStunned { get; private set; }
 
     void Start()
     {
         animator = GetComponent<Animator>();
         col = GetComponent<Collider>();
         rb = GetComponent<Rigidbody>();
+
+        if (rb != null)
+            rb.isKinematic = true;
 
         if (player == null)
         {
@@ -36,23 +48,29 @@ public class SkeletonMinion : MonoBehaviour
         }
 
         SetDeadState();
-
     }
 
     void Update()
     {
-        if (!isAlive || player == null) return;
+        if (!isAlive || player == null || isStunned) return;
+
+        if (knockbackVelocity.magnitude > 0.05f)
+        {
+            transform.position += knockbackVelocity * Time.deltaTime;
+            knockbackVelocity = Vector3.Lerp(knockbackVelocity, Vector3.zero, knockbackDecay * Time.deltaTime);
+            return;
+        }
+        else
+        {
+            knockbackVelocity = Vector3.zero;
+        }
 
         float distance = Vector3.Distance(transform.position, player.position);
 
         if (distance > attackRange)
-        {
             MoveTowardPlayer();
-        }
         else
-        {
             Attack();
-        }
     }
 
     void MoveTowardPlayer()
@@ -61,15 +79,7 @@ public class SkeletonMinion : MonoBehaviour
         direction.y = 0;
         direction.Normalize();
 
-        if (rb != null)
-            {
-                rb.MovePosition(rb.position + direction * speed * Time.deltaTime);
-            }
-        else
-            {
-                transform.position += direction * speed * Time.deltaTime;
-            }
-
+        transform.position += direction * speed * Time.deltaTime;
         transform.LookAt(transform.position + direction);
 
         animator.SetBool("isWalking", true);
@@ -87,9 +97,53 @@ public class SkeletonMinion : MonoBehaviour
         if (!isAlive || player == null) return;
 
         if (Vector3.Distance(transform.position, player.position) <= attackRange)
-        {
             player.GetComponent<PlayerHealth>()?.TakeDamage(damage);
-        }
+    }
+
+    public void ApplyKnockback(Vector3 force)
+    {
+        knockbackVelocity += force;
+    }
+
+    public void ApplyStun(float duration)
+    {
+        if (stunCoroutine != null)
+            StopCoroutine(stunCoroutine);
+        stunCoroutine = StartCoroutine(StunCoroutine(duration));
+    }
+
+    private IEnumerator StunCoroutine(float duration)
+    {
+        isStunned = true;
+        animator.SetBool("isWalking", false);
+        animator.SetBool("isAttacking", false);
+
+        yield return new WaitForSeconds(duration);
+
+        isStunned = false;
+        stunCoroutine = null;
+    }
+
+    public void ApplySlow(float slowPercent, float duration)
+    {
+        if (slowCoroutine != null)
+            StopCoroutine(slowCoroutine);
+        slowCoroutine = StartCoroutine(SlowCoroutine(slowPercent, duration));
+    }
+
+    private IEnumerator SlowCoroutine(float slowPercent, float duration)
+    {
+        if (!isSlowed)
+            originalSpeed = speed;
+
+        isSlowed = true;
+        speed = originalSpeed * (1f - slowPercent);
+
+        yield return new WaitForSeconds(duration);
+
+        speed = originalSpeed;
+        isSlowed = false;
+        slowCoroutine = null;
     }
 
     public void TakeDamage(float amount)
@@ -99,19 +153,14 @@ public class SkeletonMinion : MonoBehaviour
         Debug.Log("Skeleton taking damage: " + amount + ". Health: " + health);
 
         health -= amount;
-
-        Vector2 current = healthFill.rectTransform.sizeDelta;
-
         if (health < 0) health = 0;
 
+        Vector2 current = healthFill.rectTransform.sizeDelta;
         Vector2 newSize = new Vector2(health * 2, current.y);
-
         healthFill.rectTransform.sizeDelta = newSize;
 
         if (health <= 0)
-        {
             Die();
-        }
     }
 
     public void Revive()
@@ -124,19 +173,22 @@ public class SkeletonMinion : MonoBehaviour
         health = maxHealth;
 
         Vector2 current = healthFill.rectTransform.sizeDelta;
-
         Vector2 newSize = new Vector2(health * 2, current.y);
-
         healthFill.rectTransform.sizeDelta = newSize;
 
         animator.SetTrigger("Revive");
 
         yield return new WaitForSeconds(5.5f);
 
+        if (rb != null)
+            rb.isKinematic = true;
+
+        knockbackVelocity = Vector3.zero;
+
         isAlive = true;
 
         if (col != null)
-        col.enabled = true;
+            col.enabled = true;
 
         animator.SetBool("isWalking", false);
         animator.SetBool("isAttacking", false);
@@ -145,27 +197,27 @@ public class SkeletonMinion : MonoBehaviour
     void Die()
     {
         isAlive = false;
+        knockbackVelocity = Vector3.zero;
 
         if (rb != null)
-            {
-                rb.linearVelocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
-            }
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true;
+        }
 
         animator.SetBool("isWalking", false);
         animator.SetBool("isAttacking", false);
         animator.SetTrigger("Die");
 
         if (col != null)
-        col.enabled = false;
+            col.enabled = false;
     }
 
     void SetDeadState()
     {
-
         Die();
         health = 0;
-
         isAlive = false;
 
         if (col != null)

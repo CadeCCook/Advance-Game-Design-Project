@@ -4768,6 +4768,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2220800205303344428, guid: c8b55f8f2ee4a1b469c0e646af8450fa, type: 3}
     - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
+      propertyPath: frostSlowPercent
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
       propertyPath: magnetPulsePrefab
       value: 
       objectReference: {fileID: 1329845292236604, guid: 9bba9cf244c53c5439505dfc96fdd11c, type: 3}
@@ -4788,8 +4792,32 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 5627696518775099638, guid: 475da585c4480ca4b878c768876c618c, type: 3}
     - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
+      propertyPath: fireDamageMultiplier
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
+      propertyPath: earthDamageMultiplier
+      value: 0.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
+      propertyPath: frostDamageMultiplier
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
       propertyPath: iceProjectileCountAdd
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
+      propertyPath: magnetDamageMultiplier
+      value: 0.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
+      propertyPath: plasmaDamageMultiplier
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
+      propertyPath: electricDamageMultiplier
+      value: 0.9
       objectReference: {fileID: 0}
     - target: {fileID: 8402699421415048626, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
       propertyPath: mainCamera

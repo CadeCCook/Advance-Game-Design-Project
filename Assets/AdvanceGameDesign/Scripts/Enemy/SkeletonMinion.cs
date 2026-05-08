@@ -104,7 +104,7 @@ public class SkeletonMinion : MonoBehaviour
 
         if (health < 0) health = 0;
 
-        Vector2 newSize = new Vector2(health, current.y);
+        Vector2 newSize = new Vector2(health * 2, current.y);
 
         healthFill.rectTransform.sizeDelta = newSize;
 
@@ -125,7 +125,7 @@ public class SkeletonMinion : MonoBehaviour
 
         Vector2 current = healthFill.rectTransform.sizeDelta;
 
-        Vector2 newSize = new Vector2(health, current.y);
+        Vector2 newSize = new Vector2(health * 2, current.y);
 
         healthFill.rectTransform.sizeDelta = newSize;
 
@@ -154,6 +154,10 @@ public class SkeletonMinion : MonoBehaviour
 
     void SetDeadState()
     {
+
+        Die();
+        health = 0;
+
         isAlive = false;
 
         if (col != null)

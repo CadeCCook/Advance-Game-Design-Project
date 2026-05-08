@@ -47,11 +47,13 @@ public class BossHealth : MonoBehaviour
 
         health -= amount;
 
-        if (health < 0)
-            health = 0;
+        Vector2 current = healthFill.rectTransform.sizeDelta;
 
-        if (healthFill != null)
-            healthFill.fillAmount = health / maxHealth;
+        if (health < 0) health = 0;
+
+        Vector2 newSize = new Vector2(health/3, current.y);
+
+        healthFill.rectTransform.sizeDelta = newSize;
 
         if (health <= 0)
         {

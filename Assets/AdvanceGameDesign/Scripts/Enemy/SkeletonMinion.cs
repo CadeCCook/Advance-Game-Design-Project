@@ -146,10 +146,18 @@ public class SkeletonMinion : MonoBehaviour
     {
         isAlive = false;
 
+        if (rb != null)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+
+        animator.SetBool("isWalking", false);
+        animator.SetBool("isAttacking", false);
         animator.SetTrigger("Die");
 
         if (col != null)
-            col.enabled = false;
+        col.enabled = false;
     }
 
     void SetDeadState()

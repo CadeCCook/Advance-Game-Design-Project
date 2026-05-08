@@ -20,6 +20,7 @@ public class NecromancerAI : MonoBehaviour
     public float reviveDelay = 6f;
 
     private bool skeletonsActivated = false;
+    private bool[] skeletonReviving;
 
     [Header("Lightning Attack")]
     public float attackRange = 15f;
@@ -33,6 +34,7 @@ public class NecromancerAI : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
+        skeletonReviving = new bool[skeletons.Length];
         if (player == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -97,6 +99,17 @@ public class NecromancerAI : MonoBehaviour
                 skeletonsActivated = true;
                 ReviveAllSkeletons();
             }
+
+        if (skeletonsActivated)
+            {
+                for (int i = 0; i < skeletons.Length; i++)
+                    {
+                        if (skeletons[i] != null && !skeletons[i].isAlive && !skeletonReviving[i])
+                            {
+                                StartCoroutine(ReviveSkeletonAfterDelay(skeletons[i], i));
+                            }
+                    }
+            }
     }
 
     void MoveTowardPlayer()
@@ -113,23 +126,39 @@ public class NecromancerAI : MonoBehaviour
 
     void ReviveAllSkeletons()
     {
-        foreach (SkeletonMinion skeleton in skeletons)
+        for (int i = 0; i < skeletons.Length; i++)
             {
+                SkeletonMinion skeleton = skeletons[i];
+
                 if (skeleton != null && !skeleton.isAlive)
                     {
+                        skeletonReviving[i] = true;
+
                         skeleton.Revive();
+
+                        StartCoroutine(ResetReviveFlag(i));
                     }
             }
     }
 
-    IEnumerator ReviveSkeletonAfterDelay(SkeletonMinion skeleton)
+    IEnumerator ResetReviveFlag(int index)
     {
+        yield return new WaitForSeconds(6f);
+        skeletonReviving[index] = false;
+    }
+
+    IEnumerator ReviveSkeletonAfterDelay(SkeletonMinion skeleton, int index)
+    {
+        skeletonReviving[index] = true;
+
         yield return new WaitForSeconds(reviveDelay);
 
         if (skeleton != null && !skeleton.isAlive)
             {
                 skeleton.Revive();
             }
+
+        skeletonReviving[index] = false;
     }
 
     IEnumerator CastLightningAttack()

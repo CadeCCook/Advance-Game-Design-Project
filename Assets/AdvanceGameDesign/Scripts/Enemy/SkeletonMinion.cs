@@ -200,11 +200,7 @@ public class SkeletonMinion : MonoBehaviour
         knockbackVelocity = Vector3.zero;
 
         if (rb != null)
-        {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.isKinematic = true;
-        }
+            rb.isKinematic = true; // already true, but harmless to keep
 
         animator.SetBool("isWalking", false);
         animator.SetBool("isAttacking", false);

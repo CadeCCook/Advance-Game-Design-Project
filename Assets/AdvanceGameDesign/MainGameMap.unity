@@ -797,6 +797,7 @@ MonoBehaviour:
   attackRange: 1.5
   damage: 8
   isAlive: 0
+  knockbackDecay: 5
 --- !u!4 &123804844 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2199628841774520173, guid: 61b3e3801d56a3f429556c96ea2f07d6, type: 3}
@@ -1177,6 +1178,7 @@ MonoBehaviour:
   attackRange: 1.5
   damage: 8
   isAlive: 0
+  knockbackDecay: 5
 --- !u!4 &271846410 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2199628841774520173, guid: 61b3e3801d56a3f429556c96ea2f07d6, type: 3}
@@ -4808,6 +4810,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
+      propertyPath: waterDamageMultiplier
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 6002552269556168754, guid: 87188ba6cc5d7114481d84edae62bf97, type: 3}
       propertyPath: magnetDamageMultiplier
       value: 0.75
       objectReference: {fileID: 0}
@@ -8111,6 +8117,7 @@ MonoBehaviour:
   attackRange: 1.5
   damage: 8
   isAlive: 0
+  knockbackDecay: 5
 --- !u!54 &2003327984
 Rigidbody:
   m_ObjectHideFlags: 0

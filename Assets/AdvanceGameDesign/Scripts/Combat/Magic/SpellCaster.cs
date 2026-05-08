@@ -367,6 +367,12 @@ public class SpellCaster : MonoBehaviour
                         enemyHealth.TakeDamage(damage * 0.1f);
                     }
 
+                SkeletonMinion skeletonMinion = hit.GetComponent<SkeletonMinion>();
+                if (skeletonMinion != null)
+                    {
+                        skeletonMinion.TakeDamage(damage);
+                    }
+
                 BossHealth bossHealth = hit.GetComponent<BossHealth>();
                 if (bossHealth != null)
                     {
@@ -438,6 +444,12 @@ public class SpellCaster : MonoBehaviour
                             enemyHealth.TakeDamage(damage);
                         }
 
+                SkeletonMinion skeletonMinion = hit.GetComponent<SkeletonMinion>();
+                    if (skeletonMinion != null)
+                    {
+                        skeletonMinion.TakeDamage(damage);
+                    }
+
                 BossHealth bossHealth = hit.GetComponent<BossHealth>();
                     if (bossHealth != null)
                         {
@@ -460,6 +472,12 @@ public class SpellCaster : MonoBehaviour
                     {
                         enemyHealth.TakeDamage(damage);
                     }
+
+            SkeletonMinion skeletonMinion = hit.GetComponent<SkeletonMinion>();
+                if (skeletonMinion != null)
+                {
+                    skeletonMinion.TakeDamage(damage);
+                }
 
             BossHealth bossHealth = hit.GetComponent<BossHealth>();
                 if (bossHealth != null)
@@ -499,6 +517,12 @@ public class SpellCaster : MonoBehaviour
                     {
                         enemyHealth.TakeDamage(damage * 0.1f);
                     }
+
+                SkeletonMinion skeletonMinion = hit.GetComponent<SkeletonMinion>();
+                if (skeletonMinion != null)
+                {
+                    skeletonMinion.TakeDamage(damage);
+                }
 
                 BossHealth bossHealth = hit.GetComponent<BossHealth>();
                 if (bossHealth != null)

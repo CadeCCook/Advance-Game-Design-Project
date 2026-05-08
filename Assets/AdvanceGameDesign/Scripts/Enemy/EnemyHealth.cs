@@ -59,7 +59,6 @@ public class EnemyHealth : MonoBehaviour
 
         anim.SetTrigger("Die");
 
-
         GetComponent<Collider>().enabled = false;
 
         StartCoroutine(DestroyAfterDeath());

@@ -1,22 +1,25 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SkeletonMinion : MonoBehaviour
 {
     public Transform player;
     private Rigidbody rb;
-    public float attackCooldown = 1f;
+
     public float health = 50f;
     public float maxHealth = 50f;
+    public Image healthFill;
+
     public float speed = 2.5f;
     public float attackRange = 1.5f;
+
     public float damage = 8f;
 
     public bool isAlive = false;
 
     private Animator animator;
     private Collider col;
-    private bool canDamage = true;
 
 
     void Start()
@@ -33,6 +36,7 @@ public class SkeletonMinion : MonoBehaviour
         }
 
         SetDeadState();
+
     }
 
     void Update()
@@ -72,30 +76,10 @@ public class SkeletonMinion : MonoBehaviour
         animator.SetBool("isAttacking", false);
     }
 
-    IEnumerator AttackRoutine()
-    {
-        canDamage = false;
-
-        animator.SetBool("isWalking", false);
-        animator.SetBool("isAttacking", true);
-
-       // yield return new WaitForSeconds(0.4f);
-
-        DealDamage();
-
-        yield return new WaitForSeconds(0.7f);
-
-        animator.SetBool("isAttacking", false);
-
-        canDamage = true;
-    }
-
     void Attack()
     {
-        if (canDamage)
-        {
-            StartCoroutine(AttackRoutine());
-        }
+        animator.SetBool("isWalking", false);
+        animator.SetBool("isAttacking", true);
     }
 
     public void DealDamage()
@@ -112,7 +96,17 @@ public class SkeletonMinion : MonoBehaviour
     {
         if (!isAlive) return;
 
+        Debug.Log("Skeleton taking damage: " + amount + ". Health: " + health);
+
         health -= amount;
+
+        Vector2 current = healthFill.rectTransform.sizeDelta;
+
+        if (health < 0) health = 0;
+
+        Vector2 newSize = new Vector2(health, current.y);
+
+        healthFill.rectTransform.sizeDelta = newSize;
 
         if (health <= 0)
         {
@@ -128,6 +122,12 @@ public class SkeletonMinion : MonoBehaviour
     IEnumerator ReviveRoutine()
     {
         health = maxHealth;
+
+        Vector2 current = healthFill.rectTransform.sizeDelta;
+
+        Vector2 newSize = new Vector2(health, current.y);
+
+        healthFill.rectTransform.sizeDelta = newSize;
 
         animator.SetTrigger("Revive");
 
